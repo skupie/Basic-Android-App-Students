@@ -5,30 +5,138 @@
     android:orientation="vertical"
     android:background="@color/bg_primary">
 
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="horizontal" android:gravity="center_vertical"
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
         android:paddingStart="16dp" android:paddingEnd="16dp"
-        android:paddingTop="16dp" android:paddingBottom="12dp">
-        <ImageButton android:id="@+id/btnBack"
+        android:paddingTop="18dp" android:paddingBottom="12dp">
+
+        <ImageButton
+            android:id="@+id/btnBack"
             android:layout_width="38dp" android:layout_height="38dp"
             android:background="@drawable/bg_icon_btn"
             android:src="@drawable/ic_back_arrow"
-            android:padding="8dp" android:contentDescription="Back"
+            android:padding="8dp"
+            android:contentDescription="Back"
             android:layout_marginEnd="12dp"/>
-        <TextView android:id="@+id/tvCurrentDate"
-            android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Schedule: Today"
-            android:textColor="@color/text_primary" android:textSize="16sp" android:textStyle="bold"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Class Schedule"
+            android:textColor="@color/text_primary"
+            android:textSize="20sp"
+            android:textStyle="bold"/>
     </LinearLayout>
 
-    <TextView android:id="@+id/tvEmpty"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
+    <!-- ── Date navigation card ── -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_card_dark"
+        android:layout_marginStart="16dp" android:layout_marginEnd="16dp"
+        android:layout_marginBottom="12dp"
+        android:padding="12dp">
+
+        <ImageButton
+            android:id="@+id/btnPrevDay"
+            android:layout_width="38dp" android:layout_height="38dp"
+            android:background="@drawable/bg_icon_btn"
+            android:text="‹"
+            android:textSize="18sp"
+            android:padding="8dp"
+            android:contentDescription="Previous day"
+            android:src="@drawable/ic_back_arrow"/>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <TextView
+                android:id="@+id/tvCurrentDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Today"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/tvClassCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="@color/text_hint"
+                android:textSize="12sp"
+                android:layout_marginTop="2dp"/>
+        </LinearLayout>
+
+        <!-- Forward arrow (flipped back arrow via rotation) -->
+        <ImageButton
+            android:id="@+id/btnNextDay"
+            android:layout_width="38dp" android:layout_height="38dp"
+            android:background="@drawable/bg_icon_btn"
+            android:src="@drawable/ic_back_arrow"
+            android:rotation="180"
+            android:padding="8dp"
+            android:contentDescription="Next day"/>
+    </LinearLayout>
+
+    <!-- ── Class / Section info pills ── -->
+    <LinearLayout
+        android:id="@+id/rowClassInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="16dp" android:paddingEnd="16dp"
+        android:layout_marginBottom="12dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvClassLevel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_pill_brand"
+            android:paddingStart="14dp" android:paddingEnd="14dp"
+            android:paddingTop="6dp" android:paddingBottom="6dp"
+            android:textColor="@color/brand_light"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:layout_marginEnd="8dp"/>
+
+        <TextView
+            android:id="@+id/tvSection"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_pill_brand"
+            android:paddingStart="14dp" android:paddingEnd="14dp"
+            android:paddingTop="6dp" android:paddingBottom="6dp"
+            android:textColor="@color/brand_light"
+            android:textSize="12sp"
+            android:textStyle="bold"/>
+    </LinearLayout>
+
+    <!-- Empty state -->
+    <TextView
+        android:id="@+id/tvEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:text="No classes scheduled"
-        android:textColor="@color/text_hint" android:textSize="14sp"
-        android:gravity="center" android:padding="24dp"
+        android:textColor="@color/text_hint"
+        android:textSize="14sp"
+        android:gravity="center"
+        android:padding="32dp"
         android:visibility="gone"/>
 
+    <!-- ── List ── -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefresh"
         android:layout_width="match_parent"
@@ -40,7 +148,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:paddingStart="16dp" android:paddingEnd="16dp"
-            android:paddingTop="8dp" android:paddingBottom="16dp"
+            android:paddingTop="4dp" android:paddingBottom="80dp"
             android:clipToPadding="false"/>
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
