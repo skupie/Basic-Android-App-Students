@@ -1,38 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
     android:background="@drawable/bg_card_dark"
-    android:padding="14dp" android:layout_marginBottom="8dp">
+    android:padding="16dp"
+    android:layout_marginBottom="10dp">
 
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="horizontal" android:gravity="center_vertical"
-        android:layout_marginBottom="4dp">
-        <TextView android:id="@+id/tvInvoiceMonth"
-            android:layout_width="0dp" android:layout_height="wrap_content"
+    <!-- Amount + Month -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="6dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="@color/text_secondary" android:textSize="12sp"/>
-        <TextView android:id="@+id/tvAmount"
-            android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:textColor="@color/success" android:textSize="16sp" android:textStyle="bold"/>
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvInvoiceMonth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"/>
+
+            <TextView
+                android:id="@+id/tvDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_hint"
+                android:textSize="11sp"
+                android:layout_marginTop="2dp"/>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/success"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
     </LinearLayout>
 
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="horizontal" android:layout_marginBottom="2dp">
-        <TextView android:id="@+id/tvDate"
-            android:layout_width="0dp" android:layout_height="wrap_content"
+    <!-- Mode + Receipt -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/tvMode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_pill_brand"
+            android:paddingStart="10dp" android:paddingEnd="10dp"
+            android:paddingTop="3dp" android:paddingBottom="3dp"
+            android:textColor="@color/brand_light"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:layout_marginEnd="8dp"/>
+
+        <TextView
+            android:id="@+id/tvReceipt"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="@color/text_hint" android:textSize="11sp"/>
-        <TextView android:id="@+id/tvMode"
-            android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:textColor="@color/brand_light" android:textSize="11sp"/>
+            android:textColor="@color/text_hint"
+            android:textSize="11sp"/>
+
+        <TextView
+            android:id="@+id/tvRef"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_hint"
+            android:textSize="11sp"/>
     </LinearLayout>
 
-    <TextView android:id="@+id/tvReceipt"
-        android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:textColor="@color/text_hint" android:textSize="11sp"/>
-
-    <TextView android:id="@+id/tvRef"
-        android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:textColor="@color/text_hint" android:textSize="11sp"/>
 </LinearLayout>
