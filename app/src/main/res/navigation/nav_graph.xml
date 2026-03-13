@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/dashboardFragment">
+
+    <fragment
+        android:id="@+id/dashboardFragment"
+        android:name="com.basic.studentportal.ui.dashboard.DashboardFragment"
+        android:label="Dashboard" />
+
+    <fragment
+        android:id="@+id/attendanceFragment"
+        android:name="com.basic.studentportal.ui.attendance.AttendanceFragment"
+        android:label="Attendance" />
+
+    <fragment
+        android:id="@+id/feesFragment"
+        android:name="com.basic.studentportal.ui.fees.FeesFragment"
+        android:label="Fees" />
+
+    <fragment
+        android:id="@+id/examsFragment"
+        android:name="com.basic.studentportal.ui.exams.ExamsFragment"
+        android:label="Exams" />
+
+    <fragment
+        android:id="@+id/routinesFragment"
+        android:name="com.basic.studentportal.ui.routines.RoutinesFragment"
+        android:label="Schedule" />
+
+    <fragment
+        android:id="@+id/noticesFragment"
+        android:name="com.basic.studentportal.ui.notices.NoticesFragment"
+        android:label="Notices" />
+
+    <fragment
+        android:id="@+id/studyMaterialsFragment"
+        android:name="com.basic.studentportal.ui.materials.StudyMaterialsFragment"
+        android:label="Study Materials" />
+
+</navigation>

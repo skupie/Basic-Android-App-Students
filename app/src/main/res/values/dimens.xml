@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="screen_min_height">844dp</dimen>
+    <dimen name="card_radius">16dp</dimen>
+    <dimen name="hero_radius">20dp</dimen>
+    <dimen name="item_spacing">8dp</dimen>
+    <dimen name="page_padding">16dp</dimen>
+    <dimen name="bottom_nav_height">72dp</dimen>
+</resources>

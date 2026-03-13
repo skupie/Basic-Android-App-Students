@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/dashboardFragment"
+        android:title="Home"
+        android:icon="@android:drawable/ic_menu_compass" />
+
+    <item
+        android:id="@+id/attendanceFragment"
+        android:title="Attend"
+        android:icon="@android:drawable/ic_menu_today" />
+
+    <item
+        android:id="@+id/feesFragment"
+        android:title="Fees"
+        android:icon="@android:drawable/ic_menu_manage" />
+
+    <item
+        android:id="@+id/examsFragment"
+        android:title="Exams"
+        android:icon="@android:drawable/ic_menu_edit" />
+
+    <item
+        android:id="@+id/studyMaterialsFragment"
+        android:title="Notes"
+        android:icon="@android:drawable/ic_menu_agenda" />
+
+</menu>

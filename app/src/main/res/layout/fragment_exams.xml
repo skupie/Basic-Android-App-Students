@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bg_primary">
+
+    <!-- Header -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical"
+        android:paddingStart="16dp" android:paddingEnd="16dp"
+        android:paddingTop="16dp" android:paddingBottom="12dp">
+        <ImageButton android:id="@+id/btnBack"
+            android:layout_width="38dp" android:layout_height="38dp"
+            android:background="@drawable/bg_icon_btn"
+            android:src="@drawable/ic_back_arrow" android:padding="8dp"
+            android:contentDescription="Back" android:layout_marginEnd="12dp"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Exams &amp; Results"
+            android:textColor="@color/text_primary" android:textSize="20sp" android:textStyle="bold"/>
+    </LinearLayout>
+
+    <!-- Performance Hero Card -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp" android:layout_marginEnd="16dp"
+        android:layout_marginBottom="14dp"
+        android:background="@drawable/bg_hero_violet"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="bottom">
+                <TextView android:id="@+id/tvOverallAvg"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="—"
+                    android:textColor="@color/white" android:textSize="42sp" android:textStyle="bold"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="%" android:textColor="#B3FFFFFF" android:textSize="22sp"
+                    android:layout_marginBottom="6dp"/>
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:orientation="vertical"
+                android:layout_marginStart="18dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="OVERALL AVERAGE"
+                    android:textColor="#80FFFFFF" android:textSize="11sp" android:letterSpacing="0.08"/>
+                <TextView android:id="@+id/tvPerformanceTag"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="—" android:textColor="@color/violet_light"
+                    android:textSize="18sp" android:textStyle="bold" android:layout_marginTop="3dp"/>
+                <TextView android:id="@+id/tvPerformanceTrend"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textColor="#A3E635" android:textSize="12sp" android:layout_marginTop="3dp"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <View android:layout_width="match_parent" android:layout_height="1dp"
+            android:background="#33FFFFFF" android:layout_marginBottom="14dp"/>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                <TextView android:id="@+id/tvTotalExams"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="—" android:textColor="@color/white"
+                    android:textSize="16sp" android:textStyle="bold"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Total Exams" android:textColor="#80FFFFFF" android:textSize="10sp"/>
+            </LinearLayout>
+            <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#33FFFFFF"/>
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                <TextView android:id="@+id/tvBestScore"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="—" android:textColor="@color/white"
+                    android:textSize="16sp" android:textStyle="bold"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Best" android:textColor="#80FFFFFF" android:textSize="10sp"/>
+            </LinearLayout>
+            <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#33FFFFFF"/>
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                <TextView android:id="@+id/tvLowestScore"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="—" android:textColor="@color/white"
+                    android:textSize="16sp" android:textStyle="bold"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Lowest" android:textColor="#80FFFFFF" android:textSize="10sp"/>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Tabs -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabsExams"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginStart="16dp" android:layout_marginEnd="16dp"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_surface"
+        app:tabBackground="@null"
+        app:tabIndicatorColor="@color/brand_primary"
+        app:tabIndicatorHeight="2dp"
+        app:tabSelectedTextColor="@color/text_primary"
+        app:tabTextColor="@color/text_muted"/>
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/vpExams"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+
+</LinearLayout>
