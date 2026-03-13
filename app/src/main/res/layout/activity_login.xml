@@ -22,7 +22,6 @@
             android:paddingTop="56dp"
             android:paddingBottom="32dp">
 
-            <!-- Logo Badge -->
             <androidx.cardview.widget.CardView
                 android:layout_width="56dp"
                 android:layout_height="56dp"
@@ -58,7 +57,7 @@
                 android:lineSpacingMultiplier="1.1"/>
         </LinearLayout>
 
-        <!-- Form Card -->
+        <!-- Form -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -66,7 +65,6 @@
             android:paddingStart="24dp"
             android:paddingEnd="24dp">
 
-            <!-- Email Field -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -96,7 +94,6 @@
                     android:paddingBottom="16dp"/>
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Password Field -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -136,7 +133,6 @@
                 android:textSize="12sp"
                 android:textStyle="bold"/>
 
-            <!-- Sign In Button -->
             <ProgressBar
                 android:id="@+id/progressBar"
                 android:layout_width="wrap_content"
@@ -147,8 +143,16 @@
 
             <Button
                 android:id="@+id/btnLogin"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_btn_primary"
+                android:text="Sign In  →"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:stateListAnimator="@null"/>
 
-            <!-- Divider -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -168,7 +172,6 @@
                     android:layout_weight="1" android:background="@color/border_default"/>
             </LinearLayout>
 
-            <!-- Biometric -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -198,8 +201,7 @@
                     android:layout_marginStart="12dp"
                     android:text="Fingerprint or Face ID"
                     android:textColor="@color/text_hint"
-                    android:textSize="12sp"
-                    android:textStyle="normal"/>
+                    android:textSize="12sp"/>
             </LinearLayout>
         </LinearLayout>
 
