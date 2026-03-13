@@ -5,44 +5,152 @@
     android:orientation="vertical"
     android:background="@color/bg_primary">
 
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="horizontal" android:gravity="center_vertical"
-        android:paddingStart="16dp" android:paddingEnd="16dp"
-        android:paddingTop="16dp" android:paddingBottom="12dp">
-        <ImageButton android:id="@+id/btnBack"
-            android:layout_width="38dp" android:layout_height="38dp"
-            android:background="@drawable/bg_icon_btn"
-            android:src="@drawable/ic_back_arrow"
-            android:padding="8dp" android:contentDescription="Back"
-            android:layout_marginEnd="12dp"/>
-        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Fees"
-            android:textColor="@color/text_primary" android:textSize="20sp" android:textStyle="bold"/>
-    </LinearLayout>
-
-    <!-- Due Summary Card -->
-    <LinearLayout android:id="@+id/cardDueSummary"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="@drawable/bg_card_danger"
-        android:layout_marginStart="16dp" android:layout_marginEnd="16dp"
-        android:layout_marginBottom="8dp"
-        android:padding="16dp" android:visibility="gone">
-        <TextView android:id="@+id/tvTotalDue"
-            android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:textColor="@color/danger_light" android:textSize="22sp" android:textStyle="bold"/>
-        <TextView android:id="@+id/tvDueMonths"
-            android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:textColor="@color/text_secondary" android:textSize="12sp"/>
-    </LinearLayout>
-
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tabLayout"
+    <!-- Header -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/bg_secondary"/>
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp" android:paddingEnd="16dp"
+        android:paddingTop="18dp" android:paddingBottom="12dp">
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Fees &amp; Payments"
+            android:textColor="@color/text_primary"
+            android:textSize="22sp"
+            android:textStyle="bold"/>
+    </LinearLayout>
+
+    <!-- ── Outstanding Hero Card ── -->
+    <LinearLayout
+        android:id="@+id/cardDueSummary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_hero_danger"
+        android:layout_marginStart="16dp" android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:padding="20dp"
+        android:visibility="gone">
+
+        <!-- Label row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="6dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚠"
+                android:textColor="#FCA5A5"
+                android:textSize="13sp"
+                android:layout_marginEnd="6dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TOTAL OUTSTANDING"
+                android:textColor="#FCA5A5"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.08"/>
+        </LinearLayout>
+
+        <!-- Amount -->
+        <TextView
+            android:id="@+id/tvTotalDue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/danger"
+            android:textSize="34sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp"/>
+
+        <!-- Months label e.g. "February &amp; March unpaid" -->
+        <TextView
+            android:id="@+id/tvDueMonths"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#CCFFFFFF"
+            android:textSize="13sp"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Badge + Button row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tvOverdueBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_pill_danger"
+                android:paddingStart="14dp" android:paddingEnd="14dp"
+                android:paddingTop="6dp" android:paddingBottom="6dp"
+                android:textColor="@color/danger_light"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:layout_marginEnd="12dp"/>
+
+            <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1"/>
+
+            <TextView
+                android:id="@+id/btnPayNow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_btn_primary"
+                android:paddingStart="20dp" android:paddingEnd="20dp"
+                android:paddingTop="10dp" android:paddingBottom="10dp"
+                android:text="Pay Now →"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                android:textStyle="bold"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ── Pill Tab Selector ── -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:background="@drawable/bg_card_dark"
+        android:layout_marginStart="16dp" android:layout_marginEnd="16dp"
+        android:layout_marginBottom="14dp"
+        android:padding="4dp">
+
+        <TextView
+            android:id="@+id/tabInvoices"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Invoices"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_tab_selected"
+            android:textColor="@color/text_primary"/>
+
+        <TextView
+            android:id="@+id/tabPayments"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Payments"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:background="@null"
+            android:textColor="@color/text_hint"/>
+    </LinearLayout>
+
+    <!-- ── List ── -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefresh"
         android:layout_width="match_parent"
@@ -54,8 +162,9 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:paddingStart="16dp" android:paddingEnd="16dp"
-            android:paddingTop="8dp" android:paddingBottom="16dp"
+            android:paddingTop="4dp" android:paddingBottom="80dp"
             android:clipToPadding="false"/>
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
 </LinearLayout>
