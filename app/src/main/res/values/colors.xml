@@ -49,4 +49,15 @@
     <color name="grad_violet_end">#7C3AED</color>
     <color name="grad_red_start">#991B1B</color>
     <color name="grad_red_end">#7F1D1D</color>
+    <color name="status_active">#10B981</color>
+    <color name="status_inactive">#EF4444</color>
+    <color name="status_warning">#F59E0B</color>
+    <color name="status_active_bg">#064E3B</color>
+    <color name="status_inactive_bg">#7F1D1D</color>
+    <color name="status_warning_bg">#78350F</color>
+    <color name="surface_variant">#131929</color>
+    <color name="colorOnSurfaceVariant">#9CA3AF</color>
+    <color name="grade_excellent">#10B981</color>
+    <color name="grade_good">#6366F1</color>
+    <color name="grade_average">#F59E0B</color>
 </resources>
