@@ -137,17 +137,16 @@
                 android:textStyle="bold"/>
 
             <!-- Sign In Button -->
-            <Button
-                android:id="@+id/btnSignIn"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_marginTop="28dp"
-                android:background="@drawable/bg_btn_primary"
-                android:text="Sign In  →"
-                android:textColor="@color/white"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:stateListAnimator="@null"/>
+                android:visibility="gone"/>
+
+            <Button
+                android:id="@+id/btnLogin"
 
             <!-- Divider -->
             <LinearLayout
