@@ -22,14 +22,87 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
-            android:paddingBottom="88dp">
+            android:paddingBottom="88dp"
+            android:visibility="gone">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <!-- Student Info Card -->
+                <!-- ─── Header: Greeting + Actions ─────────────────────────── -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="16dp"
+                    android:paddingTop="18dp"
+                    android:paddingBottom="6dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView android:id="@+id/tvGreeting"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Good Morning 👋"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp"/>
+
+                        <TextView android:id="@+id/tvHeaderName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Student"
+                            android:textColor="@color/text_primary"
+                            android:textSize="22sp"
+                            android:textStyle="bold"/>
+                    </LinearLayout>
+
+                    <!-- Notification Button -->
+                    <FrameLayout
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_marginEnd="8dp">
+
+                        <ImageView
+                            android:id="@+id/btnNotification"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:background="@drawable/bg_card_dark"
+                            android:padding="10dp"
+                            android:src="@android:drawable/ic_dialog_info"
+                            android:tint="@color/text_secondary"
+                            android:contentDescription="Notifications"/>
+
+                        <View
+                            android:id="@+id/dotNotification"
+                            android:layout_width="9dp"
+                            android:layout_height="9dp"
+                            android:layout_gravity="top|end"
+                            android:layout_margin="4dp"
+                            android:background="@drawable/ic_circle"
+                            android:backgroundTint="@color/danger"
+                            android:visibility="gone"/>
+                    </FrameLayout>
+
+                    <!-- Settings Button -->
+                    <ImageView
+                        android:id="@+id/btnSettings"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:background="@drawable/bg_card_dark"
+                        android:padding="10dp"
+                        android:src="@android:drawable/ic_menu_manage"
+                        android:tint="@color/text_secondary"
+                        android:contentDescription="Settings"/>
+                </LinearLayout>
+
+                <!-- ─── Hero Student Profile Card ──────────────────────────── -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -38,191 +111,629 @@
                     android:padding="20dp"
                     android:layout_marginStart="16dp"
                     android:layout_marginEnd="16dp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginBottom="14dp">
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="16dp">
 
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                        android:orientation="horizontal" android:gravity="center_vertical"
-                        android:layout_marginBottom="8dp">
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    <!-- Top row: label + status chip -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="6dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="STUDENT PROFILE"
-                            android:textColor="#B3FFFFFF" android:textSize="11sp" android:textStyle="bold"
+                            android:textColor="#B3FFFFFF"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
                             android:letterSpacing="0.1"/>
+
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chipStatus"
-                            android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="ACTIVE"
-                            android:textColor="@color/brand_light" android:textSize="11sp"
-                            app:chipBackgroundColor="@color/status_active_bg"/>
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="● ACTIVE"
+                            android:textColor="@color/brand_light"
+                            android:textSize="11sp"
+                            app:chipBackgroundColor="@color/status_active_bg"
+                            app:chipStrokeWidth="0dp"/>
                     </LinearLayout>
 
+                    <!-- Class name -->
                     <TextView android:id="@+id/tvStudentName"
-                        android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="Student Name"
-                        android:textColor="@color/white" android:textSize="20sp" android:textStyle="bold"/>
-                    <TextView android:id="@+id/tvClassSection"
-                        android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="Class — Section"
-                        android:textColor="#99FFFFFF" android:textSize="13sp"
-                        android:layout_marginBottom="8dp"/>
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Class Name"
+                        android:textColor="@color/white"
+                        android:textSize="22sp"
+                        android:textStyle="bold"/>
+
+                    <!-- Academic year -->
+                    <TextView android:id="@+id/tvAcademicYear"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Academic Year"
+                        android:textColor="#99FFFFFF"
+                        android:textSize="13sp"
+                        android:layout_marginBottom="16dp"/>
+
+                    <!-- Stats row: Attendance | Avg Score | Due Fees -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <!-- Attendance -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView android:id="@+id/tvAttendancePct"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="—"
+                                android:textColor="@color/white"
+                                android:textSize="22sp"
+                                android:textStyle="bold"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Attendance"
+                                android:textColor="#99FFFFFF"
+                                android:textSize="11sp"/>
+                        </LinearLayout>
+
+                        <!-- Divider -->
+                        <View
+                            android:layout_width="1dp"
+                            android:layout_height="36dp"
+                            android:layout_gravity="center_vertical"
+                            android:background="#33FFFFFF"
+                            android:layout_marginEnd="16dp"/>
+
+                        <!-- Avg Score -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView android:id="@+id/tvAvgScore"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="—"
+                                android:textColor="@color/white"
+                                android:textSize="22sp"
+                                android:textStyle="bold"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Avg. Score"
+                                android:textColor="#99FFFFFF"
+                                android:textSize="11sp"/>
+                        </LinearLayout>
+
+                        <!-- Divider -->
+                        <View
+                            android:layout_width="1dp"
+                            android:layout_height="36dp"
+                            android:layout_gravity="center_vertical"
+                            android:background="#33FFFFFF"
+                            android:layout_marginEnd="16dp"/>
+
+                        <!-- Due Fees -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView android:id="@+id/tvDueFees"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="—"
+                                android:textColor="@color/white"
+                                android:textSize="22sp"
+                                android:textStyle="bold"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Due Fees"
+                                android:textColor="#99FFFFFF"
+                                android:textSize="11sp"/>
+                        </LinearLayout>
+                    </LinearLayout>
                 </LinearLayout>
 
-                <!-- Due Alert -->
-                <LinearLayout android:id="@+id/cardDueAlert"
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp" android:layout_marginEnd="16dp"
-                    android:layout_marginBottom="14dp"
-                    android:background="@drawable/bg_card_danger"
-                    android:padding="16dp" android:orientation="horizontal"
-                    android:gravity="center_vertical" android:visibility="gone">
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                        android:layout_weight="1" android:orientation="vertical">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="⚠️ Fee Payment Overdue"
-                            android:textColor="@color/danger_light" android:textSize="13sp" android:textStyle="bold"/>
-                        <TextView android:id="@+id/tvDueMessage"
-                            android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:textColor="@color/text_secondary" android:textSize="12sp"/>
+                <!-- ─── Quick Access ────────────────────────────────────────── -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="QUICK ACCESS"
+                    android:textColor="@color/text_muted"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.1"
+                    android:paddingStart="20dp"
+                    android:paddingBottom="10dp"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:layout_marginBottom="18dp">
+
+                    <!-- Attendance -->
+                    <LinearLayout
+                        android:id="@+id/quickAttendance"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:background="@drawable/bg_card_dark"
+                        android:padding="14dp"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginEnd="4dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="📅"
+                            android:textSize="22sp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Attendance"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp"
+                            android:layout_marginTop="6dp"
+                            android:gravity="center"/>
                     </LinearLayout>
+
+                    <!-- Fees -->
+                    <LinearLayout
+                        android:id="@+id/quickFees"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:background="@drawable/bg_card_dark"
+                        android:padding="14dp"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginEnd="4dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="💳"
+                            android:textSize="22sp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Fees"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp"
+                            android:layout_marginTop="6dp"
+                            android:gravity="center"/>
+                    </LinearLayout>
+
+                    <!-- Results -->
+                    <LinearLayout
+                        android:id="@+id/quickResults"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:background="@drawable/bg_card_dark"
+                        android:padding="14dp"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginEnd="4dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="📊"
+                            android:textSize="22sp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Results"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp"
+                            android:layout_marginTop="6dp"
+                            android:gravity="center"/>
+                    </LinearLayout>
+
+                    <!-- Materials -->
+                    <LinearLayout
+                        android:id="@+id/quickMaterials"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:background="@drawable/bg_card_dark"
+                        android:padding="14dp"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginEnd="4dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="📚"
+                            android:textSize="22sp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Materials"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp"
+                            android:layout_marginTop="6dp"
+                            android:gravity="center"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- ─── Due Alert ───────────────────────────────────────────── -->
+                <LinearLayout android:id="@+id/cardDueAlert"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginBottom="18dp"
+                    android:background="@drawable/bg_card_danger"
+                    android:padding="16dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="⚠"
+                        android:textColor="@color/danger_light"
+                        android:textSize="20sp"
+                        android:layout_marginEnd="12dp"/>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Fee Payment Overdue"
+                            android:textColor="@color/danger_light"
+                            android:textSize="13sp"
+                            android:textStyle="bold"/>
+
+                        <TextView android:id="@+id/tvDueMessage"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp"/>
+                    </LinearLayout>
+
+                    <TextView android:id="@+id/tvDueAmount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/danger_light"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="4dp"/>
+
                     <Button android:id="@+id/btnDismissAlert"
-                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:text="✕"
                         android:background="@null"
-                        android:textColor="@color/danger_light" android:textSize="16sp"/>
+                        android:textColor="@color/danger_light"
+                        android:textSize="16sp"
+                        android:minWidth="0dp"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="0dp"/>
                 </LinearLayout>
 
-                <!-- Today's Routine -->
-                <TextView android:id="@+id/tvRoutineDate"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="Schedule for Today"
-                    android:textColor="@color/text_muted" android:textSize="11sp" android:textStyle="bold"
-                    android:letterSpacing="0.1"
-                    android:paddingStart="20dp" android:paddingEnd="20dp" android:paddingBottom="8dp"/>
+                <!-- ─── Today's Classes ────────────────────────────────────── -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
+                    android:paddingBottom="10dp">
+
+                    <TextView android:id="@+id/tvRoutineDate"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="TODAY'S CLASSES"
+                        android:textColor="@color/text_muted"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.1"/>
+
+                    <TextView
+                        android:id="@+id/tvViewAllRoutines"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="View All"
+                        android:textColor="@color/brand_light"
+                        android:textSize="12sp"/>
+                </LinearLayout>
 
                 <TextView android:id="@+id/tvNoRoutine"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="No classes scheduled"
-                    android:textColor="@color/text_hint" android:textSize="13sp"
-                    android:paddingStart="20dp" android:paddingBottom="12dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="No classes scheduled today"
+                    android:textColor="@color/text_hint"
+                    android:textSize="13sp"
+                    android:paddingStart="20dp"
+                    android:paddingBottom="12dp"
                     android:visibility="gone"/>
 
-                <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/chipGroupRoutines"
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:paddingStart="16dp" android:paddingEnd="16dp"
-                    android:layout_marginBottom="14dp"/>
-
-                <!-- Exam Stats -->
+                <!-- Routine items container -->
                 <LinearLayout
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:id="@+id/containerRoutines"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:layout_marginBottom="18dp"/>
+
+                <!-- ─── Exam Performance ──────────────────────────────────── -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="EXAM PERFORMANCE"
+                    android:textColor="@color/text_muted"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.1"
+                    android:paddingStart="20dp"
+                    android:paddingBottom="10dp"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:background="@drawable/bg_card_dark"
-                    android:layout_marginStart="16dp" android:layout_marginEnd="16dp"
-                    android:layout_marginBottom="14dp"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginBottom="18dp"
                     android:padding="16dp">
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                        android:orientation="horizontal" android:gravity="center_vertical"
-                        android:layout_marginBottom="8dp">
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <TextView android:id="@+id/tvPerformanceLabel"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="EXAM PERFORMANCE"
-                            android:textColor="@color/text_muted" android:textSize="11sp" android:textStyle="bold"/>
+                            android:text="—"
+                            android:textColor="@color/brand_light"
+                            android:textSize="15sp"
+                            android:textStyle="bold"/>
+
                         <TextView android:id="@+id/tvTrendDelta"
-                            android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:textSize="12sp" android:visibility="gone"/>
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="12sp"
+                            android:visibility="gone"/>
                     </LinearLayout>
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
                         android:orientation="horizontal">
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                            android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="center">
+
                             <TextView android:id="@+id/tvExamCount"
-                                android:layout_width="wrap_content" android:layout_height="wrap_content"
-                                android:text="—" android:textColor="@color/brand_light" android:textSize="24sp" android:textStyle="bold"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                                android:text="Exams" android:textColor="@color/text_hint" android:textSize="11sp"/>
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="—"
+                                android:textColor="@color/brand_light"
+                                android:textSize="26sp"
+                                android:textStyle="bold"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Exams"
+                                android:textColor="@color/text_hint"
+                                android:textSize="11sp"/>
                         </LinearLayout>
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                            android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="center">
+
                             <TextView android:id="@+id/tvAvgPercent"
-                                android:layout_width="wrap_content" android:layout_height="wrap_content"
-                                android:text="—" android:textColor="@color/success" android:textSize="24sp" android:textStyle="bold"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                                android:text="Avg Score" android:textColor="@color/text_hint" android:textSize="11sp"/>
-                        </LinearLayout>
-                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                            android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                            <TextView android:id="@+id/tvPerformanceLabel"
-                                android:layout_width="wrap_content" android:layout_height="wrap_content"
-                                android:text="—" android:textColor="@color/text_primary" android:textSize="16sp" android:textStyle="bold"/>
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                                android:text="Grade" android:textColor="@color/text_hint" android:textSize="11sp"/>
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="—"
+                                android:textColor="@color/success"
+                                android:textSize="26sp"
+                                android:textStyle="bold"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Avg Score"
+                                android:textColor="@color/text_hint"
+                                android:textSize="11sp"/>
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- Notes Summary -->
+                <!-- ─── Study Materials Summary ───────────────────────────── -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="STUDY MATERIALS"
+                    android:textColor="@color/text_muted"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.1"
+                    android:paddingStart="20dp"
+                    android:paddingBottom="10dp"/>
+
                 <LinearLayout
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:orientation="vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
                     android:background="@drawable/bg_card_dark"
-                    android:layout_marginStart="16dp" android:layout_marginEnd="16dp"
-                    android:layout_marginBottom="14dp"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginBottom="18dp"
                     android:padding="16dp">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="STUDY MATERIALS"
-                        android:textColor="@color/text_muted" android:textSize="11sp" android:textStyle="bold"
-                        android:layout_marginBottom="8dp"/>
-                    <TextView android:id="@+id/tvNoteCount"
-                        android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:textColor="@color/brand_light" android:textSize="18sp" android:textStyle="bold"/>
-                    <TextView android:id="@+id/tvLatestNote"
-                        android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:textColor="@color/text_primary" android:textSize="13sp"/>
-                    <TextView android:id="@+id/tvNoteTeacher"
-                        android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:textColor="@color/text_hint" android:textSize="12sp"/>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView android:id="@+id/tvNoteCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/brand_light"
+                            android:textSize="20sp"
+                            android:textStyle="bold"/>
+
+                        <TextView android:id="@+id/tvLatestNote"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp"
+                            android:layout_marginTop="2dp"/>
+
+                        <TextView android:id="@+id/tvNoteTeacher"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/text_hint"
+                            android:textSize="12sp"/>
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvViewAllMaterials"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📚"
+                        android:textSize="28sp"/>
                 </LinearLayout>
 
-                <!-- Pending Notice -->
+                <!-- ─── Pending Notice ─────────────────────────────────────── -->
                 <LinearLayout android:id="@+id/cardNotice"
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:background="@drawable/bg_card_dark"
-                    android:layout_marginStart="16dp" android:layout_marginEnd="16dp"
-                    android:layout_marginBottom="14dp"
-                    android:padding="16dp" android:visibility="gone">
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                        android:orientation="horizontal" android:gravity="center_vertical"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginBottom="18dp"
+                    android:padding="16dp"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
                         android:layout_marginBottom="8dp">
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="📢 NOTICE"
-                            android:textColor="@color/warning" android:textSize="11sp" android:textStyle="bold"/>
+                            android:textColor="@color/warning"
+                            android:textSize="11sp"
+                            android:textStyle="bold"/>
+
                         <Button android:id="@+id/btnCloseNotice"
-                            android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="✕" android:background="@null"
-                            android:textColor="@color/text_hint" android:textSize="16sp"/>
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="✕"
+                            android:background="@null"
+                            android:textColor="@color/text_hint"
+                            android:textSize="16sp"
+                            android:minWidth="0dp"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="0dp"/>
                     </LinearLayout>
+
                     <TextView android:id="@+id/tvNoticeTitle"
-                        android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:textColor="@color/text_primary" android:textSize="15sp" android:textStyle="bold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
                         android:layout_marginBottom="6dp"/>
+
                     <TextView android:id="@+id/tvNoticeBody"
-                        android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:textColor="@color/text_secondary" android:textSize="13sp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp"
                         android:layout_marginBottom="10dp"/>
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                        android:orientation="horizontal" android:gravity="end">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
                         <TextView android:id="@+id/tvNoticeDate"
-                            android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:textColor="@color/text_hint" android:textSize="11sp"/>
+                            android:textColor="@color/text_hint"
+                            android:textSize="11sp"/>
+
                         <Button android:id="@+id/btnAcknowledge"
-                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
                             android:text="Acknowledge"
                             android:background="@drawable/bg_btn_primary"
-                            android:textColor="@color/white" android:textSize="12sp"/>
+                            android:textColor="@color/white"
+                            android:textSize="12sp"/>
                     </LinearLayout>
                 </LinearLayout>
 
