@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.basic.studentportal.data.model.ListResponse
@@ -58,15 +59,24 @@ class NoticeAdapter(
     inner class VH(private val b: ItemNoticeBinding) : RecyclerView.ViewHolder(b.root) {
         fun bind(item: StudentNotice) {
             b.tvTitle.text = item.title
-            b.tvBody.text = item.body
-            b.tvDate.text = item.noticeDate
-            if (item.isAcknowledged) {
-                b.btnAck.gone()
-                b.tvAcked.visible()
-            } else {
-                b.btnAck.visible()
+            b.tvDate.text = "📅 Posted: ${item.noticeDate}"
+
+            if (!item.isAcknowledged) {
+                // ── Unread: expanded with body + action buttons ────────────────
+                b.rowUnreadLabel.visible()
+                b.tvBody.text = item.body
+                b.tvBody.visible()
+                b.rowAckActions.visible()
                 b.tvAcked.gone()
+
                 b.btnAck.setOnClickListener { onAcknowledge(item.id) }
+                b.btnDismiss.setOnClickListener { /* dismiss UI only — list will reload */ }
+            } else {
+                // ── Acknowledged: compact (no body, no buttons) ───────────────
+                b.rowUnreadLabel.gone()
+                b.tvBody.gone()
+                b.rowAckActions.gone()
+                b.tvAcked.visible()
             }
         }
     }
@@ -91,7 +101,9 @@ class NoticesFragment : Fragment() {
     private val viewModel: NoticesViewModel by viewModels()
     private lateinit var adapter: NoticeAdapter
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
         _binding = FragmentNoticesBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -103,7 +115,10 @@ class NoticesFragment : Fragment() {
             viewModel.acknowledge(noticeId)
             viewModel.loadNotices()
         }
+
+        binding.recyclerNotices.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerNotices.adapter = adapter
+
         binding.swipeRefresh.setOnRefreshListener { viewModel.loadNotices() }
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -112,8 +127,25 @@ class NoticesFragment : Fragment() {
                     is Resource.Loading -> binding.swipeRefresh.isRefreshing = true
                     is Resource.Success -> {
                         binding.swipeRefresh.isRefreshing = false
-                        adapter.submitList(state.data.data)
-                        if (state.data.data.isEmpty()) binding.tvEmpty.visible() else binding.tvEmpty.gone()
+                        val notices = state.data.data
+
+                        // Sort: unread first, then by date descending
+                        val sorted = notices.sortedWith(
+                            compareByDescending<StudentNotice> { !it.isAcknowledged }
+                                .thenByDescending { it.noticeDate }
+                        )
+                        adapter.submitList(sorted)
+
+                        // Unread badge
+                        val unreadCount = notices.count { !it.isAcknowledged }
+                        if (unreadCount > 0) {
+                            binding.tvUnreadBadge.text = "$unreadCount Unread"
+                            binding.tvUnreadBadge.visible()
+                        } else {
+                            binding.tvUnreadBadge.gone()
+                        }
+
+                        if (notices.isEmpty()) binding.tvEmpty.visible() else binding.tvEmpty.gone()
                     }
                     is Resource.Error -> {
                         binding.swipeRefresh.isRefreshing = false
