@@ -51,6 +51,11 @@
         <item name="cardCornerRadius">20dp</item>
     </style>
 
+    <!-- Base TextAppearance — required as implicit parent for dot-notation sub-styles below -->
+    <style name="TextAppearance.StudentPortal" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
     <!-- Text styles -->
     <style name="TextAppearance.StudentPortal.PageTitle">
         <item name="android:textSize">20sp</item>
