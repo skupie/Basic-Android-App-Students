@@ -5,7 +5,6 @@
     android:orientation="vertical"
     android:background="@color/bg_primary">
 
-    <!-- Header -->
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="horizontal" android:gravity="center_vertical"
         android:paddingStart="16dp" android:paddingEnd="16dp"
@@ -13,92 +12,35 @@
         <ImageButton android:id="@+id/btnBack"
             android:layout_width="38dp" android:layout_height="38dp"
             android:background="@drawable/bg_icon_btn"
-            android:src="@drawable/ic_back_arrow" android:padding="8dp"
-            android:contentDescription="Back" android:layout_marginEnd="12dp"/>
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:src="@drawable/ic_back_arrow"
+            android:padding="8dp" android:contentDescription="Back"
+            android:layout_marginEnd="12dp"/>
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="Study Materials"
             android:textColor="@color/text_primary" android:textSize="20sp" android:textStyle="bold"/>
     </LinearLayout>
 
-    <!-- Search Bar -->
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="horizontal" android:gravity="center_vertical"
-        android:background="@drawable/bg_input_field"
-        android:layout_marginStart="16dp" android:layout_marginEnd="16dp"
-        android:layout_marginBottom="14dp"
-        android:paddingStart="16dp" android:paddingEnd="16dp"
-        android:paddingTop="14dp" android:paddingBottom="14dp">
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="🔍" android:textSize="16sp" android:layout_marginEnd="10dp"/>
-        <EditText android:id="@+id/etSearch"
-            android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@null"
-            android:hint="Search notes, chapters…"
-            android:textColorHint="@color/text_muted"
-            android:textColor="@color/text_primary"
-            android:textSize="14sp"/>
-    </LinearLayout>
-
-    <!-- Filter chips -->
-    <HorizontalScrollView
+    <TextView android:id="@+id/tvEmpty"
         android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:paddingStart="16dp" android:paddingEnd="16dp"
-        android:layout_marginBottom="14dp"
-        android:scrollbars="none">
-        <LinearLayout android:id="@+id/llFilterChips"
-            android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:orientation="horizontal"/>
-    </HorizontalScrollView>
+        android:text="No materials available"
+        android:textColor="@color/text_hint" android:textSize="14sp"
+        android:gravity="center" android:padding="24dp"
+        android:visibility="gone"/>
 
-    <!-- Stats mini row -->
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingStart="16dp" android:paddingEnd="16dp"
-        android:layout_marginBottom="14dp">
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_weight="1" android:orientation="vertical"
-            android:background="@drawable/bg_card_dark"
-            android:padding="12dp" android:gravity="center"
-            android:layout_marginEnd="6dp">
-            <TextView android:id="@+id/tvTotalFiles"
-                android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="—" android:textColor="@color/brand_primary" android:textSize="20sp" android:textStyle="bold"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Total Files" android:textColor="@color/text_hint" android:textSize="10sp"/>
-        </LinearLayout>
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_weight="1" android:orientation="vertical"
-            android:background="@drawable/bg_card_dark"
-            android:padding="12dp" android:gravity="center"
-            android:layout_marginStart="6dp" android:layout_marginEnd="6dp">
-            <TextView android:id="@+id/tvThisWeek"
-                android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="—" android:textColor="@color/success" android:textSize="20sp" android:textStyle="bold"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="This Week" android:textColor="@color/text_hint" android:textSize="10sp"/>
-        </LinearLayout>
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_weight="1" android:orientation="vertical"
-            android:background="@drawable/bg_card_dark"
-            android:padding="12dp" android:gravity="center"
-            android:layout_marginStart="6dp">
-            <TextView android:id="@+id/tvSubjectCount"
-                android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="—" android:textColor="@color/warning" android:textSize="20sp" android:textStyle="bold"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Subjects" android:textColor="@color/text_hint" android:textSize="10sp"/>
-        </LinearLayout>
-    </LinearLayout>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvStudyMaterials"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefresh"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="16dp"
-        android:clipToPadding="false"/>
+        android:layout_weight="1">
 
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerMaterials"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingStart="16dp" android:paddingEnd="16dp"
+            android:paddingTop="8dp" android:paddingBottom="16dp"
+            android:clipToPadding="false"/>
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </LinearLayout>
