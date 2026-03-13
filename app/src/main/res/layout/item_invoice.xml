@@ -52,9 +52,14 @@
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="BALANCE" android:textColor="@color/text_muted"
                 android:textSize="10sp" android:textAllCaps="true" android:letterSpacing="0.06"/>
-            <TextView android:id="@+id/tvBalance"
+            <TextView android:id="@+id/tvOutstanding"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:textSize="14sp" android:textStyle="bold" android:layout_marginTop="3dp"/>
-        </LinearLayout>
+        <TextView android:id="@+id/tvDueDate"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:textColor="@color/text_hint" android:textSize="11sp"
+        android:paddingStart="16dp" android:paddingEnd="16dp"
+        android:paddingTop="8dp" android:paddingBottom="8dp"/>
+</LinearLayout>
     </LinearLayout>
 </LinearLayout>
