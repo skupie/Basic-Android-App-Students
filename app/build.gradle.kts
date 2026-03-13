@@ -18,7 +18,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "BASE_URL", "\"https://basic.bd-d.online/api/v1/\"")
+        buildConfigField("String", "BASE_URL", "\"https://basic.bd-d.online/api/\"")
         buildConfigField("String", "APP_NAME", "\"Student Portal\"")
     }
 
@@ -30,12 +30,12 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "BASE_URL", "\"https://basic.bd-d.online/api/v1/\"")
+            buildConfigField("String", "BASE_URL", "\"https://basic.bd-d.online/api/\"")
         }
         debug {
             isDebuggable = true
             applicationIdSuffix = ".debug"
-            buildConfigField("String", "BASE_URL", "\"https://basic.bd-d.online/api/v1/\"")
+            buildConfigField("String", "BASE_URL", "\"https://basic.bd-d.online/api/\"")
         }
     }
 
