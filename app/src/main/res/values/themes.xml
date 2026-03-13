@@ -18,6 +18,14 @@
         <item name="tabStyle">@style/Widget.StudentPortal.TabLayout</item>
     </style>
 
+    <!-- Login screen — fullscreen, no action bar, keyboard pushes content up -->
+    <style name="Theme.StudentPortal.Login">
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
+        <item name="android:statusBarColor">@color/bg_primary</item>
+        <item name="android:navigationBarColor">@color/bg_primary</item>
+    </style>
+
     <!-- Fintech Bottom Nav -->
     <style name="Widget.StudentPortal.BottomNav" parent="Widget.MaterialComponents.BottomNavigationView">
         <item name="android:background">@color/bg_secondary</item>
