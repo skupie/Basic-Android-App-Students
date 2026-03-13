@@ -1,64 +1,114 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/cardNotice"
-    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
     android:background="@drawable/bg_card_dark"
-    android:padding="16dp" android:layout_marginBottom="10dp">
+    android:padding="16dp"
+    android:layout_marginBottom="10dp">
 
-    <!-- Unread indicator row -->
-    <LinearLayout android:id="@+id/rowUnreadLabel"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="horizontal" android:gravity="center_vertical"
-        android:layout_marginBottom="10dp" android:visibility="gone">
-        <View android:layout_width="8dp" android:layout_height="8dp"
+    <!-- ── NEW NOTICE label (unread only) ── -->
+    <LinearLayout
+        android:id="@+id/rowUnreadLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone">
+
+        <View
+            android:layout_width="8dp"
+            android:layout_height="8dp"
             android:background="@drawable/ic_circle"
-            android:layout_marginEnd="8dp"/>
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:backgroundTint="@color/warning_light"
+            android:layout_marginEnd="6dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="NEW NOTICE"
-            android:textColor="@color/warning_light" android:textSize="11sp" android:textStyle="bold"
+            android:textColor="@color/warning_light"
+            android:textSize="11sp"
+            android:textStyle="bold"
             android:letterSpacing="0.08"/>
     </LinearLayout>
 
-    <TextView android:id="@+id/tvTitle"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold"
-        android:layout_marginBottom="8dp"/>
+    <!-- Title -->
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/text_primary"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="6dp"/>
 
-    <TextView android:id="@+id/tvBody"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:textColor="@color/text_secondary" android:textSize="12sp"
-        android:lineSpacingMultiplier="1.55" android:layout_marginBottom="12dp"/>
+    <!-- Body (hidden for compact acknowledged view) -->
+    <TextView
+        android:id="@+id/tvBody"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp"
+        android:lineSpacingMultiplier="1.6"
+        android:layout_marginBottom="14dp"
+        android:visibility="gone"/>
 
-    <!-- Acknowledge row (visible only for unread) -->
-    <LinearLayout android:id="@+id/rowAckActions"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="horizontal" android:visibility="gone">
-        <Button android:id="@+id/btnAck"
-            android:layout_width="0dp" android:layout_height="44dp"
+    <!-- ── Acknowledge buttons (unread only) ── -->
+    <LinearLayout
+        android:id="@+id/rowAckActions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="10dp"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/btnAck"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
             android:layout_weight="1"
             android:background="@drawable/bg_btn_amber"
             android:text="✓  I Understand"
-            android:textColor="@color/black" android:textSize="12sp" android:textStyle="bold"
-            android:stateListAnimator="@null" android:layout_marginEnd="8dp"/>
-        <Button android:id="@+id/btnDismiss"
-            android:layout_width="wrap_content" android:layout_height="44dp"
+            android:textColor="@color/black"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:stateListAnimator="@null"
+            android:layout_marginEnd="8dp"/>
+
+        <Button
+            android:id="@+id/btnDismiss"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
             android:background="@drawable/bg_icon_btn"
             android:text="Later"
-            android:textColor="@color/text_secondary" android:textSize="12sp"
-            android:paddingStart="16dp" android:paddingEnd="16dp"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp"
+            android:paddingStart="18dp"
+            android:paddingEnd="18dp"
             android:stateListAnimator="@null"/>
     </LinearLayout>
 
-    <!-- Acknowledged chip -->
-    <TextView android:id="@+id/tvAcked"
-        android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:text="✓  Acknowledged"
-        android:textColor="@color/success" android:textSize="12sp" android:textStyle="bold"
+    <!-- ── Acknowledged chip ── -->
+    <TextView
+        android:id="@+id/tvAcked"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="✓ Acknowledged"
+        android:textColor="@color/success"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="6dp"
         android:visibility="gone"/>
 
-    <TextView android:id="@+id/tvDate"
-        android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:textColor="@color/text_muted" android:textSize="10sp"
-        android:layout_marginTop="10dp"/>
+    <!-- Date -->
+    <TextView
+        android:id="@+id/tvDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/text_muted"
+        android:textSize="10sp"/>
+
 </LinearLayout>
