@@ -283,3 +283,16 @@ data class ListResponse<T>(
     @SerializedName("data") val data: List<T>,
     @SerializedName("meta") val meta: PaginationMeta?
 )
+
+// ─── Auth Update Requests ─────────────────────────────────────────────────────
+
+data class UpdateEmailRequest(
+    @SerializedName("email") val email: String,
+    @SerializedName("password") val password: String
+)
+
+data class UpdatePasswordRequest(
+    @SerializedName("current_password") val currentPassword: String,
+    @SerializedName("password") val password: String,
+    @SerializedName("password_confirmation") val passwordConfirmation: String
+)
