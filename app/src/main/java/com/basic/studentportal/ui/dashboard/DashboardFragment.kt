@@ -163,11 +163,12 @@ class DashboardFragment : Fragment() {
         data.dueSummary?.let { due ->
             val monthlyFee = data.student?.monthlyFee ?: 0.0
             val calculatedDue = due.dueMonthCount * monthlyFee
-            if (due.showDueAlert && calculatedDue > 0) {
+            // Show alert whenever there are due months — do NOT rely on server's
+            // showDueAlert flag because it can be false even when payment is overdue.
+            if (due.dueMonthCount > 0 && calculatedDue > 0) {
                 binding.cardDueAlert.visible()
                 binding.tvDueMessage.text =
-                    if (due.dueMonthCount > 0) "${due.dueMonthCount} month${if (due.dueMonthCount != 1) "s" else ""} pending • Tap to pay"
-                    else due.dueAlertMessage ?: "Fee payment pending"
+                    "${due.dueMonthCount} month${if (due.dueMonthCount != 1) "s" else ""} pending • Tap to pay"
                 binding.tvDueAmount.text = calculatedDue.toCurrency()
                 binding.btnDismissAlert.setOnClickListener {
                     viewModel.dismissDueAlert()
