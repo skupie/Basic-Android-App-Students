@@ -27,7 +27,7 @@
     <fragment
         android:id="@+id/routinesFragment"
         android:name="com.basic.studentportal.ui.routines.RoutinesFragment"
-        android:label="Schedule" />
+        android:label="Routine" />
 
     <fragment
         android:id="@+id/noticesFragment"
@@ -38,5 +38,10 @@
         android:id="@+id/studyMaterialsFragment"
         android:name="com.basic.studentportal.ui.materials.StudyMaterialsFragment"
         android:label="Study Materials" />
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.basic.studentportal.ui.settings.SettingsFragment"
+        android:label="Settings" />
 
 </navigation>
