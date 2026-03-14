@@ -285,26 +285,50 @@ class ExamsFragment : Fragment() {
 
     private fun bindHeroCard(marks: List<WeeklyExamMark>) {
         if (marks.isEmpty()) {
-            binding.tvAvgPercent.text = "—"
+            binding.tvAvgPercent.text    = "—"
             binding.tvPerformanceLabel.text = "No data"
-            binding.tvTotalExams.text = "0"
-            binding.tvBestScore.text = "—"
-            binding.tvLowestScore.text = "—"
+            binding.tvTotalExams.text    = "0"
+            binding.tvBestScore.text     = "—"
+            binding.tvLowestScore.text   = "—"
             return
         }
         val percents = marks.map { m ->
             m.percentage ?: if (m.maxMarks > 0) m.marksObtained / m.maxMarks * 100 else 0.0
         }
-        val avg = percents.average()
-        binding.tvAvgPercent.text = avg.toInt().toString()
-        binding.tvTotalExams.text = marks.size.toString()
-        binding.tvBestScore.text = "${percents.max().toInt()}%"
-        binding.tvLowestScore.text = "${percents.min().toInt()}%"
+        val avg    = percents.average()
+        val best   = percents.max()
+        val lowest = percents.min()
+
+        // Animate the big percentage number
+        com.basic.studentportal.utils.animateCountFloat(
+            textView = binding.tvAvgPercent,
+            to = avg,
+            suffix = "",
+            decimals = 0
+        )
+
+        // Animate total exams counter
+        binding.tvTotalExams.animateCount(marks.size)
+
+        // Best / lowest with animated counts
+        com.basic.studentportal.utils.animateCountFloat(
+            textView = binding.tvBestScore,
+            to = best,
+            suffix = "%",
+            decimals = 0
+        )
+        com.basic.studentportal.utils.animateCountFloat(
+            textView = binding.tvLowestScore,
+            to = lowest,
+            suffix = "%",
+            decimals = 0
+        )
+
         binding.tvPerformanceLabel.text = when {
             avg >= 85 -> "Excellent 🏆"
             avg >= 70 -> "Good 📈"
             avg >= 55 -> "Average 📚"
-            else -> "Needs Work ⚠"
+            else      -> "Needs Work ⚠"
         }
     }
 
