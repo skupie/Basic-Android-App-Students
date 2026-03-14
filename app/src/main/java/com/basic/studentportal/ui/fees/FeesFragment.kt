@@ -84,32 +84,28 @@ class FeesFragment : Fragment() {
                         if (ds != null && ds.dueMonthsCount > 0) {
                             binding.cardDueSummary.visible()
 
-                            // Monthly fee = highest amountDue across all invoices
                             val monthlyFee = state.data.data
                                 .maxOfOrNull { it.amountDue } ?: 0.0
+                            val totalOutstanding = ds.dueMonthsCount * monthlyFee
 
-                            // Row 1: Monthly Fee
-                            binding.tvMonthlyFee.text = monthlyFee.toCurrency()
+                            // Monthly fee label above the big amount
+                            binding.tvMonthlyFee.text =
+                                "Monthly Fee  ${monthlyFee.toCurrency()}"
 
-                            // Row 2: Due Months — badge shows count, names shown beside it
-                            binding.tvOverdueBadge.text =
-                                "${ds.dueMonthsCount} Month${if (ds.dueMonthsCount != 1) "s" else ""}"
+                            binding.tvTotalDue.text = totalOutstanding.toCurrency()
 
-                            val monthNames = state.data.data
+                            binding.tvOverdueBadge.text = "${ds.dueMonthsCount} Month${if (ds.dueMonthsCount != 1) "s" else ""} Overdue"
+
+                            val unpaidLabels = state.data.data
                                 .filter { it.status != "paid" }
                                 .map { inv ->
-                                    inv.billingMonthLabel ?: formatBillingMonth(inv.billingMonth)
+                                    inv.billingMonthLabel
+                                        ?: formatBillingMonth(inv.billingMonth)
                                 }
-                            binding.tvDueMonths.text = when (monthNames.size) {
-                                0    -> ""
-                                1    -> monthNames[0]
-                                2    -> "${monthNames[0]} & ${monthNames[1]}"
-                                else -> "${monthNames.take(2).joinToString(" & ")} +${monthNames.size - 2} more"
-                            }
-
-                            // Row 3: Total Due = dueMonthsCount × monthly fee
-                            binding.tvTotalDue.text = (ds.dueMonthsCount * monthlyFee).toCurrency()
-
+                                .takeLast(2)
+                            binding.tvDueMonths.text = if (unpaidLabels.isNotEmpty())
+                                "${unpaidLabels.joinToString(" & ")} unpaid"
+                            else "${ds.dueMonthsCount} month(s) pending"
                         } else {
                             binding.cardDueSummary.gone()
                         }
@@ -144,7 +140,6 @@ class FeesFragment : Fragment() {
         }
     }
 
-    /** Converts "2026-02" → "February 2026". Returns the raw string if parsing fails. */
     private fun formatBillingMonth(raw: String): String {
         return try {
             val ym = YearMonth.parse(raw, DateTimeFormatter.ofPattern("yyyy-MM"))
