@@ -46,6 +46,23 @@ class DashboardFragment : Fragment() {
 
         binding.swipeRefresh.setOnRefreshListener { viewModel.loadDashboard() }
 
+        // Fix #6 — wire the header action buttons
+        binding.btnNotification.setOnClickListener {
+            findNavController().navigate(R.id.noticesFragment)
+        }
+        binding.btnSettings.setOnClickListener {
+            // Show a simple logout confirmation popup
+            android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Options")
+                .setItems(arrayOf("Logout")) { _, which ->
+                    if (which == 0) {
+                        (requireActivity() as? com.basic.studentportal.ui.main.MainActivity)
+                            ?.performLogout()
+                    }
+                }
+                .show()
+        }
+
         // Quick access navigation
         binding.quickAttendance.setOnClickListener {
             findNavController().navigate(R.id.attendanceFragment)
@@ -144,18 +161,23 @@ class DashboardFragment : Fragment() {
             binding.tvAvgScore.text = exam.averagePercent.toPercent()
         }
 
+        // Fix #9: due = dueMonthCount × student.monthlyFee
         data.dueSummary?.let { due ->
-            binding.tvDueFees.text = if (due.dueAmount > 0) due.dueAmount.toCurrency() else "0 ৳"
+            val monthlyFee = data.student?.monthlyFee ?: 0.0
+            val calculatedDue = due.dueMonthCount * monthlyFee
+            binding.tvDueFees.text = if (calculatedDue > 0) calculatedDue.toCurrency() else "0 ৳"
         }
 
         // ── Due Alert ─────────────────────────────────────────────────────────
         data.dueSummary?.let { due ->
-            if (due.showDueAlert && due.dueAmount > 0) {
+            val monthlyFee = data.student?.monthlyFee ?: 0.0
+            val calculatedDue = due.dueMonthCount * monthlyFee
+            if (due.showDueAlert && calculatedDue > 0) {
                 binding.cardDueAlert.visible()
                 binding.tvDueMessage.text =
-                    if (due.dueMonthCount > 0) "${due.dueMonthCount} months pending • Tap to pay"
+                    if (due.dueMonthCount > 0) "${due.dueMonthCount} month${if (due.dueMonthCount != 1) "s" else ""} pending • Tap to pay"
                     else due.dueAlertMessage ?: "Fee payment pending"
-                binding.tvDueAmount.text = due.dueAmount.toCurrency()
+                binding.tvDueAmount.text = calculatedDue.toCurrency()
                 binding.btnDismissAlert.setOnClickListener {
                     viewModel.dismissDueAlert()
                     binding.cardDueAlert.gone()
