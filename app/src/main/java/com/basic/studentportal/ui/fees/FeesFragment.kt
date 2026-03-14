@@ -17,6 +17,10 @@ import com.basic.studentportal.utils.toCurrency
 import com.basic.studentportal.utils.visible
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
 
 @AndroidEntryPoint
 class FeesFragment : Fragment() {
@@ -30,9 +34,7 @@ class FeesFragment : Fragment() {
     private var isShowingInvoices = true
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentFeesBinding.inflate(inflater, container, false)
         return binding.root
@@ -53,7 +55,6 @@ class FeesFragment : Fragment() {
                 binding.recyclerFees.adapter = invoiceAdapter
             }
         }
-
         binding.tabPayments.setOnClickListener {
             if (isShowingInvoices) {
                 isShowingInvoices = false
@@ -72,46 +73,41 @@ class FeesFragment : Fragment() {
 
                     is Resource.Success -> {
                         binding.swipeRefresh.isRefreshing = false
-
-                        // Canonical monthly fee = maximum amountDue seen across all invoices.
-                        // This guards against the server returning a reduced amountDue on
-                        // individual invoices (e.g. 1,000 for one month vs 2,000 for others).
-                        val monthlyFee = state.data.data
-                            .maxOfOrNull { it.amountDue } ?: 0.0
-
-                        // IMPORTANT: setMonthlyFee() MUST be called before submitList().
-                        // submitList() kicks off an async DiffUtil diff which will call
-                        // onBindViewHolder for each item. If monthlyFee isn't set yet,
-                        // the DUE column and month label bind correctly on first pass.
-                        // Calling notifyDataSetChanged() after submitList() races with
-                        // that diff and can blank out tvMonth on the first card.
-                        invoiceAdapter.setMonthlyFee(monthlyFee)
                         invoiceAdapter.submitList(state.data.data)
 
-                        // ── Hero outstanding card ─────────────────────────────
                         val ds = state.data.dueSummary
                         if (ds != null && ds.dueMonthsCount > 0) {
                             binding.cardDueSummary.visible()
 
-                            val totalOutstanding = ds.dueMonthsCount * monthlyFee
-                            binding.tvTotalDue.text = totalOutstanding.toCurrency()
+                            // Monthly fee = highest amountDue across all invoices
+                            // (amountDue is always the original full-month fee)
+                            val monthlyFee = state.data.data
+                                .maxOfOrNull { it.amountDue } ?: 0.0
 
+                            // Row 1: Monthly Fee
+                            binding.tvMonthlyFee.text = monthlyFee.toCurrency()
+
+                            // Row 2: Due Months — badge shows count, label shows month names
                             binding.tvOverdueBadge.text =
-                                "${ds.dueMonthsCount} Month${if (ds.dueMonthsCount != 1) "s" else ""} Overdue"
+                                "${ds.dueMonthsCount} Month${if (ds.dueMonthsCount != 1) "s" else ""}"
 
-                            val unpaidLabels = state.data.data
+                            val monthNames = state.data.data
                                 .filter { it.status != "paid" }
                                 .map { inv ->
-                                    // billingMonthLabel is human-readable when the server sends it
-                                    // (e.g. "February 2026"). When it is null, billingMonth is a
-                                    // raw "yyyy-MM" string — parse and format it ourselves.
                                     inv.billingMonthLabel
                                         ?: formatBillingMonth(inv.billingMonth)
                                 }
-                                .takeLast(2)
-                            binding.tvDueMonths.text = if (unpaidLabels.isNotEmpty())
-                                "${unpaidLabels.joinToString(" & ")} unpaid"
-                            else "${ds.dueMonthsCount} month(s) pending"
+                            binding.tvDueMonths.text = when {
+                                monthNames.isEmpty() -> ""
+                                monthNames.size == 1 -> monthNames[0]
+                                monthNames.size == 2 -> "${monthNames[0]} & ${monthNames[1]}"
+                                else -> "${monthNames.take(2).joinToString(" & ")} +${monthNames.size - 2} more"
+                            }
+
+                            // Row 3: Total Due = dueMonthsCount × monthly fee
+                            val totalDue = ds.dueMonthsCount * monthlyFee
+                            binding.tvTotalDue.text = totalDue.toCurrency()
+
                         } else {
                             binding.cardDueSummary.gone()
                         }
@@ -133,40 +129,34 @@ class FeesFragment : Fragment() {
         }
     }
 
-    private fun selectTab(invoices: Boolean) {
-        if (invoices) {
-            binding.tabInvoices.background =
-                ContextCompat.getDrawable(requireContext(), R.drawable.bg_tab_selected)
-            binding.tabInvoices.setTextColor(
-                ContextCompat.getColor(requireContext(), R.color.text_primary))
-            binding.tabPayments.background = null
-            binding.tabPayments.setTextColor(
-                ContextCompat.getColor(requireContext(), R.color.text_hint))
-        } else {
-            binding.tabPayments.background =
-                ContextCompat.getDrawable(requireContext(), R.drawable.bg_tab_selected)
-            binding.tabPayments.setTextColor(
-                ContextCompat.getColor(requireContext(), R.color.text_primary))
-            binding.tabInvoices.background = null
-            binding.tabInvoices.setTextColor(
-                ContextCompat.getColor(requireContext(), R.color.text_hint))
-        }
-    }
-
     /**
-     * Converts a raw "yyyy-MM" billing month string (e.g. "2026-02") into
-     * a readable label (e.g. "February 2026").
-     * Returns the original string unchanged if it can't be parsed.
+     * Converts "2026-02" → "February 2026".
+     * Returns the raw string if parsing fails.
      */
     private fun formatBillingMonth(raw: String): String {
         return try {
-            val ym = java.time.YearMonth.parse(raw,
-                java.time.format.DateTimeFormatter.ofPattern("yyyy-MM"))
-            val month = ym.month.getDisplayName(
-                java.time.format.TextStyle.FULL, java.util.Locale.ENGLISH)
+            val ym = YearMonth.parse(raw, DateTimeFormatter.ofPattern("yyyy-MM"))
+            val month = ym.month.getDisplayName(TextStyle.FULL, Locale.ENGLISH)
             "$month ${ym.year}"
         } catch (e: Exception) {
-            raw   // fall back to raw value if format is unexpected
+            raw
+        }
+    }
+
+    private fun selectTab(invoices: Boolean) {
+        val ctx = requireContext()
+        if (invoices) {
+            binding.tabInvoices.background =
+                ContextCompat.getDrawable(ctx, R.drawable.bg_tab_selected)
+            binding.tabInvoices.setTextColor(ContextCompat.getColor(ctx, R.color.text_primary))
+            binding.tabPayments.background = null
+            binding.tabPayments.setTextColor(ContextCompat.getColor(ctx, R.color.text_hint))
+        } else {
+            binding.tabPayments.background =
+                ContextCompat.getDrawable(ctx, R.drawable.bg_tab_selected)
+            binding.tabPayments.setTextColor(ContextCompat.getColor(ctx, R.color.text_primary))
+            binding.tabInvoices.background = null
+            binding.tabInvoices.setTextColor(ContextCompat.getColor(ctx, R.color.text_hint))
         }
     }
 
