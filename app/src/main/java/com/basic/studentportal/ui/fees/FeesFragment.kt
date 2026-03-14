@@ -24,9 +24,6 @@ class FeesFragment : Fragment() {
     private var _binding: FragmentFeesBinding? = null
     private val binding get() = _binding!!
     private val viewModel: FeesViewModel by viewModels()
-
-    // InvoiceAdapter is constructed with an initial fee of 0; the real fee is
-    // pushed in via setMonthlyFee() once the invoice list arrives.
     private val invoiceAdapter = InvoiceAdapter()
     private val paymentAdapter = PaymentAdapter()
 
@@ -76,17 +73,18 @@ class FeesFragment : Fragment() {
                     is Resource.Success -> {
                         binding.swipeRefresh.isRefreshing = false
 
-                        // ── Canonical monthly fee ─────────────────────────────
-                        // The server can return a wrong/reduced amountDue on
-                        // individual invoices (e.g. 1,000 instead of 2,000 for
-                        // March in the screenshot). We derive the correct full
-                        // monthly fee by taking the MAXIMUM amountDue across all
-                        // invoices — this is always the unmodified original fee.
+                        // Canonical monthly fee = maximum amountDue seen across all invoices.
+                        // This guards against the server returning a reduced amountDue on
+                        // individual invoices (e.g. 1,000 for one month vs 2,000 for others).
                         val monthlyFee = state.data.data
                             .maxOfOrNull { it.amountDue } ?: 0.0
 
-                        // Push the canonical fee into the adapter so every row
-                        // shows the same DUE and computes BALANCE consistently.
+                        // IMPORTANT: setMonthlyFee() MUST be called before submitList().
+                        // submitList() kicks off an async DiffUtil diff which will call
+                        // onBindViewHolder for each item. If monthlyFee isn't set yet,
+                        // the DUE column and month label bind correctly on first pass.
+                        // Calling notifyDataSetChanged() after submitList() races with
+                        // that diff and can blank out tvMonth on the first card.
                         invoiceAdapter.setMonthlyFee(monthlyFee)
                         invoiceAdapter.submitList(state.data.data)
 
@@ -95,7 +93,6 @@ class FeesFragment : Fragment() {
                         if (ds != null && ds.dueMonthsCount > 0) {
                             binding.cardDueSummary.visible()
 
-                            // Total = number of due months × canonical monthly fee
                             val totalOutstanding = ds.dueMonthsCount * monthlyFee
                             binding.tvTotalDue.text = totalOutstanding.toCurrency()
 
