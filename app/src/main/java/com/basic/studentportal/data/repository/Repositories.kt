@@ -57,6 +57,35 @@ class AuthRepository @Inject constructor(
     }
 
     suspend fun getMe(): Resource<AuthUser> = safeApiCall { api.getMe() }
+    // Add these methods inside AuthRepository class:
+
+    suspend fun updateEmail(newEmail: String, currentPassword: String): Resource<String> {
+        val result = safeApiCall {
+            api.updateEmail(UpdateEmailRequest(email = newEmail, password = currentPassword))
+        }
+        return when (result) {
+            is Resource.Success -> Resource.Success("Email updated successfully")
+            is Resource.Error   -> Resource.Error(result.message, result.code)
+            is Resource.Loading -> Resource.Loading
+        }
+    }
+
+    suspend fun updatePassword(currentPassword: String, newPassword: String): Resource<String> {
+        val result = safeApiCall {
+            api.updatePassword(
+                UpdatePasswordRequest(
+                    currentPassword = currentPassword,
+                    password = newPassword,
+                    passwordConfirmation = newPassword
+                )
+            )
+        }
+        return when (result) {
+            is Resource.Success -> Resource.Success("Password updated successfully")
+            is Resource.Error   -> Resource.Error(result.message, result.code)
+            is Resource.Loading -> Resource.Loading
+        }
+    }
 }
 
 // ─── Student Repository ───────────────────────────────────────────────────────
