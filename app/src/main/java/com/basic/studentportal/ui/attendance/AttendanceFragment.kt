@@ -10,12 +10,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.basic.studentportal.databinding.FragmentAttendanceBinding
 import com.basic.studentportal.utils.Resource
+import com.basic.studentportal.utils.animateCount
+import com.basic.studentportal.utils.animatePercent
+import com.basic.studentportal.utils.animateProgress
 import com.basic.studentportal.utils.gone
-import com.basic.studentportal.utils.toPercent
 import com.basic.studentportal.utils.visible
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -27,15 +28,12 @@ class AttendanceFragment : Fragment() {
     private val binding get() = _binding!!
     private val viewModel: AttendanceViewModel by viewModels()
 
-    // Tracks the month currently displayed in the picker
     private var displayedMonth: YearMonth = YearMonth.now()
-    private val apiFormatter = DateTimeFormatter.ofPattern("yyyy-MM")
+    private val apiFormatter   = DateTimeFormatter.ofPattern("yyyy-MM")
     private val labelFormatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH)
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentAttendanceBinding.inflate(inflater, container, false)
         return binding.root
@@ -44,24 +42,19 @@ class AttendanceFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // ── RecyclerView setup (was missing LayoutManager — caused blank list) ──
         val adapter = AttendanceAdapter()
         binding.recyclerAttendance.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerAttendance.adapter = adapter
 
-        // ── Initialise month picker to the ViewModel's current selection ──────
         displayedMonth = YearMonth.parse(viewModel.selectedMonth, apiFormatter)
         updateMonthLabel()
 
-        // ── Month navigation ──────────────────────────────────────────────────
         binding.btnPrevMonth.setOnClickListener {
             displayedMonth = displayedMonth.minusMonths(1)
             updateMonthLabel()
             viewModel.filterByMonth(displayedMonth.format(apiFormatter))
         }
-
         binding.btnNextMonth.setOnClickListener {
-            // Don't allow navigating beyond the current month
             if (displayedMonth < YearMonth.now()) {
                 displayedMonth = displayedMonth.plusMonths(1)
                 updateMonthLabel()
@@ -69,43 +62,39 @@ class AttendanceFragment : Fragment() {
             }
         }
 
-        // ── Swipe refresh ─────────────────────────────────────────────────────
         binding.swipeRefresh.setOnRefreshListener { viewModel.loadAll() }
 
-        // ── Summary (stats card) ──────────────────────────────────────────────
+        // ── Summary with animated numbers ──────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.summary.collect { state ->
                 when (state) {
-                    is Resource.Loading -> {
-                        // Keep card visible with dash placeholders while loading
-                        binding.cardSummary.visible()
-                    }
+                    is Resource.Loading -> binding.cardSummary.visible()
+
                     is Resource.Success -> {
                         val s = state.data
                         binding.cardSummary.visible()
-                        binding.tvPresent.text  = s.presentCount.toString()
-                        binding.tvAbsent.text   = s.absentCount.toString()
-                        binding.tvLate.text     = s.lateCount.toString()
-                        // FIX: bind total days which was never set before
-                        binding.tvTotalCount.text = s.totalDays.toString()
-                        binding.tvPercent.text  = s.attendancePercent.toPercent()
-                        binding.progressAttendance.progress = s.attendancePercent.toInt()
+                        // Animate all counters
+                        binding.tvPresent.animateCount(s.presentCount)
+                        binding.tvAbsent.animateCount(s.absentCount)
+                        binding.tvLate.animateCount(s.lateCount)
+                        binding.tvTotalCount.animateCount(s.totalDays)
+                        // Animate circular indicator + % label together
+                        binding.tvPercent.animatePercent(to = s.attendancePercent)
+                        binding.progressAttendance.animateProgress(s.attendancePercent.toInt())
                     }
+
                     is Resource.Error -> {
-                        // Keep card visible with dashes so the UI doesn't look broken
                         binding.cardSummary.visible()
-                        binding.tvPresent.text  = "—"
-                        binding.tvAbsent.text   = "—"
-                        binding.tvLate.text     = "—"
-                        binding.tvTotalCount.text = "—"
-                        binding.tvPercent.text  = "—"
+                        listOf(binding.tvPresent, binding.tvAbsent,
+                               binding.tvLate, binding.tvTotalCount).forEach { it.text = "—" }
+                        binding.tvPercent.text = "—"
                         binding.progressAttendance.progress = 0
                     }
                 }
             }
         }
 
-        // ── Attendance list ───────────────────────────────────────────────────
+        // ── Attendance list ────────────────────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.attendance.collect { state ->
                 when (state) {
@@ -115,10 +104,9 @@ class AttendanceFragment : Fragment() {
                     }
                     is Resource.Success -> {
                         binding.swipeRefresh.isRefreshing = false
-                        val records = state.data.data
-                        adapter.submitList(records)
-                        if (records.isEmpty()) {
-                            binding.tvEmpty.text = "No attendance records for this month"
+                        adapter.submitList(state.data.data)
+                        if (state.data.data.isEmpty()) {
+                            binding.tvEmpty.text = "No records for this month"
                             binding.tvEmpty.visible()
                         } else {
                             binding.tvEmpty.gone()
@@ -134,13 +122,11 @@ class AttendanceFragment : Fragment() {
         }
     }
 
-    /** Updates the month label and enables/disables the next-month arrow */
     private fun updateMonthLabel() {
         binding.tvCurrentMonth.text = displayedMonth.format(labelFormatter)
-        // Gray out the "›" arrow when we're already on the current month
-        val isCurrentMonth = displayedMonth >= YearMonth.now()
-        binding.btnNextMonth.alpha = if (isCurrentMonth) 0.3f else 1.0f
-        binding.btnNextMonth.isEnabled = !isCurrentMonth
+        val atCurrent = displayedMonth >= YearMonth.now()
+        binding.btnNextMonth.alpha     = if (atCurrent) 0.3f else 1f
+        binding.btnNextMonth.isEnabled = !atCurrent
     }
 
     override fun onDestroyView() {
