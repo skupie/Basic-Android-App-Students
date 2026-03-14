@@ -29,6 +29,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
 import javax.inject.Inject
 
 // ─── ViewModel ────────────────────────────────────────────────────────────────
@@ -54,44 +58,39 @@ class RoutinesViewModel @Inject constructor(private val repository: RoutineRepos
 
 // ─── Adapter ─────────────────────────────────────────────────────────────────
 
-// Subject → accent color map (bg drawable + text color)
 private fun subjectAccentBg(subject: String): Int = when {
-    subject.contains("math", true) -> R.drawable.bg_card_brand
-    subject.contains("physics", true) -> R.drawable.bg_card_brand
-    subject.contains("english", true) -> R.drawable.bg_card_success
-    subject.contains("biology", true) -> R.drawable.bg_card_success
+    subject.contains("math", true)      -> R.drawable.bg_card_brand
+    subject.contains("physics", true)   -> R.drawable.bg_card_brand
+    subject.contains("english", true)   -> R.drawable.bg_card_success
+    subject.contains("biology", true)   -> R.drawable.bg_card_success
     subject.contains("chemistry", true) -> R.drawable.bg_card_amber
-    subject.contains("history", true) || subject.contains("social", true) -> R.drawable.bg_card_warning
+    subject.contains("history", true)
+            || subject.contains("social", true) -> R.drawable.bg_card_warning
     else -> R.drawable.bg_card_dark
 }
 
 private fun subjectAccentColor(subject: String): Int = when {
-    subject.contains("math", true) -> R.color.brand_light
-    subject.contains("physics", true) -> R.color.brand_light
-    subject.contains("english", true) -> R.color.success
-    subject.contains("biology", true) -> R.color.success
+    subject.contains("math", true)      -> R.color.brand_light
+    subject.contains("physics", true)   -> R.color.brand_light
+    subject.contains("english", true)   -> R.color.success
+    subject.contains("biology", true)   -> R.color.success
     subject.contains("chemistry", true) -> R.color.grade_average
-    else -> R.color.brand_light
+    else                                -> R.color.brand_light
 }
 
 class RoutineAdapter : ListAdapter<Routine, RoutineAdapter.VH>(DiffCb()) {
     inner class VH(private val b: ItemRoutineBinding) : RecyclerView.ViewHolder(b.root) {
         fun bind(item: Routine) {
             val ctx = b.root.context
-            val subject = item.subject
-
-            b.tvSubject.text = subject.toSubjectLabel()
+            b.tvSubject.text = item.subject.toSubjectLabel()
             b.tvTeacher.text = item.teacherName?.let { "🏫 $it" } ?: ""
 
-            // Time slot: may be "08:00 AM - 09:00 AM" or similar
-            // Left label shows just the start time
             val parts = item.timeSlot.split("-")
             b.tvTimeSlot.text = parts.firstOrNull()?.trim() ?: item.timeSlot
             b.tvTimeLabel.text = item.timeSlot
 
-            // Accent colors per subject
-            val accentBg = subjectAccentBg(subject)
-            val accentColor = ContextCompat.getColor(ctx, subjectAccentColor(subject))
+            val accentBg = subjectAccentBg(item.subject)
+            val accentColor = ContextCompat.getColor(ctx, subjectAccentColor(item.subject))
             b.cardRoutine.background = ContextCompat.getDrawable(ctx, accentBg)
             b.viewAccentLine.setBackgroundColor(accentColor)
             b.tvTimeLabel.setTextColor(accentColor)
@@ -99,9 +98,11 @@ class RoutineAdapter : ListAdapter<Routine, RoutineAdapter.VH>(DiffCb()) {
             b.viewTimelineDot.setBackgroundColor(accentColor)
         }
     }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = VH(
         ItemRoutineBinding.inflate(LayoutInflater.from(parent.context), parent, false))
     override fun onBindViewHolder(holder: VH, position: Int) = holder.bind(getItem(position))
+
     class DiffCb : DiffUtil.ItemCallback<Routine>() {
         override fun areItemsTheSame(a: Routine, b: Routine) = a.id == b.id
         override fun areContentsTheSame(a: Routine, b: Routine) = a == b
@@ -118,8 +119,9 @@ class RoutinesFragment : Fragment() {
     private val viewModel: RoutinesViewModel by viewModels()
     private val adapter = RoutineAdapter()
 
+    // Date navigation — populated from API's available_dates list
     private var availableDates: List<String> = emptyList()
-    private var dateIndex: Int = -1   // -1 = "today" (null date)
+    private var currentIndex: Int = -1
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -134,46 +136,72 @@ class RoutinesFragment : Fragment() {
         binding.recyclerRoutines.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerRoutines.adapter = adapter
 
-        binding.swipeRefresh.setOnRefreshListener { viewModel.loadRoutines(viewModel.selectedDate) }
+        // Refresh current date's classes
+        binding.swipeRefresh.setOnRefreshListener {
+            viewModel.loadRoutines(availableDates.getOrNull(currentIndex))
+        }
 
+        // ── Arrow navigation ─────────────────────────────────────────────────
         binding.btnPrevDay.setOnClickListener {
-            if (availableDates.isNotEmpty()) {
-                val cur = if (dateIndex < 0) availableDates.size - 1 else dateIndex
-                val prev = (cur - 1).coerceAtLeast(0)
-                dateIndex = prev
-                viewModel.loadRoutines(availableDates[prev])
+            if (currentIndex > 0) {
+                currentIndex--
+                viewModel.loadRoutines(availableDates[currentIndex])
             }
         }
 
         binding.btnNextDay.setOnClickListener {
-            if (availableDates.isNotEmpty()) {
-                val cur = if (dateIndex < 0) availableDates.size - 1 else dateIndex
-                val next = (cur + 1).coerceAtMost(availableDates.size - 1)
-                dateIndex = next
-                viewModel.loadRoutines(availableDates[next])
+            if (currentIndex < availableDates.size - 1) {
+                currentIndex++
+                viewModel.loadRoutines(availableDates[currentIndex])
             }
         }
 
+        // ── Collect ──────────────────────────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.routines.collect { state ->
                 when (state) {
                     is Resource.Loading -> binding.swipeRefresh.isRefreshing = true
+
                     is Resource.Success -> {
                         binding.swipeRefresh.isRefreshing = false
                         val data = state.data
 
-                        availableDates = data.availableDates ?: emptyList()
+                        // On first successful load, build available dates list
+                        // and snap currentIndex to today
+                        if (availableDates.isEmpty() && !data.availableDates.isNullOrEmpty()) {
+                            availableDates = data.availableDates
 
-                        // Date display
-                        binding.tvCurrentDate.text = data.currentDate ?: "Today"
+                            val todayStr = LocalDate.now()
+                                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                            currentIndex = availableDates.indexOf(todayStr)
+
+                            // Fall back to the last date if today isn't in the list
+                            if (currentIndex < 0) currentIndex = availableDates.size - 1
+                        }
+
+                        // Show the resolved date header
+                        val resolvedDate = data.currentDate
+                            ?: availableDates.getOrNull(currentIndex)
+                        binding.tvCurrentDate.text = formatDateLabel(resolvedDate)
+
                         val count = data.data.size
-                        binding.tvClassCount.text = if (count > 0) "$count class${if (count != 1) "es" else ""} today" else ""
+                        binding.tvClassCount.text = when {
+                            count == 0 -> "No classes today"
+                            count == 1 -> "1 class today"
+                            else -> "$count classes today"
+                        }
+
+                        // Dim arrows at boundaries
+                        binding.btnPrevDay.alpha = if (currentIndex > 0) 1f else 0.3f
+                        binding.btnNextDay.alpha =
+                            if (currentIndex < availableDates.size - 1) 1f else 0.3f
 
                         adapter.submitList(data.data)
 
                         if (data.data.isEmpty()) binding.tvEmpty.visible()
                         else binding.tvEmpty.gone()
                     }
+
                     is Resource.Error -> {
                         binding.swipeRefresh.isRefreshing = false
                         binding.tvEmpty.text = state.message
@@ -181,6 +209,19 @@ class RoutinesFragment : Fragment() {
                     }
                 }
             }
+        }
+    }
+
+    /** "2026-03-14" → "Saturday, 14 March 2026" */
+    private fun formatDateLabel(dateStr: String?): String {
+        if (dateStr.isNullOrBlank()) return "Today"
+        return try {
+            val d = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+            val day   = d.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.ENGLISH)
+            val month = d.month.getDisplayName(TextStyle.FULL, Locale.ENGLISH)
+            "$day, ${d.dayOfMonth} $month ${d.year}"
+        } catch (e: Exception) {
+            dateStr
         }
     }
 
