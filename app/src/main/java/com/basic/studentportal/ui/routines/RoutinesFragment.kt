@@ -180,10 +180,12 @@ class RoutinesFragment : Fragment() {
                             if (currentIndex < 0) currentIndex = availableDates.size - 1
                         }
 
-                        // Header: prefer server echo, fall back to what we requested
-                        val displayDate = data.currentDate
-                            ?: viewModel.selectedDate
+                        // Header: ALWAYS use the date we explicitly requested.
+                        // data.currentDate from the server echoes today's date regardless
+                        // of what date was passed, so we never use it for the header.
+                        val displayDate = viewModel.selectedDate
                             ?: availableDates.getOrNull(currentIndex)
+                            ?: data.currentDate
                         binding.tvCurrentDate.text = formatDateLabel(displayDate)
 
                         val count = data.data.size
