@@ -112,7 +112,8 @@
             android:orientation="horizontal">
 
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                android:layout_weight="1" android:orientation="vertical" android:gravity="center_horizontal">
+                android:layout_weight="1" android:orientation="vertical"
+                android:gravity="center_horizontal">
                 <TextView android:id="@+id/tvTotalExams"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"
                     android:text="—" android:textColor="@color/white"
@@ -122,10 +123,12 @@
                     android:textSize="10sp" android:layout_marginTop="2dp"/>
             </LinearLayout>
 
-            <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#44FFFFFF"/>
+            <View android:layout_width="1dp" android:layout_height="match_parent"
+                android:background="#44FFFFFF"/>
 
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                android:layout_weight="1" android:orientation="vertical" android:gravity="center_horizontal">
+                android:layout_weight="1" android:orientation="vertical"
+                android:gravity="center_horizontal">
                 <TextView android:id="@+id/tvBestScore"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"
                     android:text="—" android:textColor="@color/white"
@@ -135,10 +138,12 @@
                     android:textSize="10sp" android:layout_marginTop="2dp"/>
             </LinearLayout>
 
-            <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#44FFFFFF"/>
+            <View android:layout_width="1dp" android:layout_height="match_parent"
+                android:background="#44FFFFFF"/>
 
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                android:layout_weight="1" android:orientation="vertical" android:gravity="center_horizontal">
+                android:layout_weight="1" android:orientation="vertical"
+                android:gravity="center_horizontal">
                 <TextView android:id="@+id/tvLowestScore"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"
                     android:text="—" android:textColor="@color/white"
@@ -184,7 +189,9 @@
             android:textColor="@color/text_hint"/>
     </LinearLayout>
 
-    <!-- ── Content ── -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- WEEKLY TEST TAB CONTENT                                     -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefresh"
         android:layout_width="match_parent"
@@ -195,13 +202,41 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <!-- Weekly Test tab content -->
             <LinearLayout
                 android:id="@+id/containerWeeklyTest"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingBottom="80dp">
+
+                <!-- ── Week filter dropdown ── -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bg_card_dark"
+                    android:layout_marginStart="16dp" android:layout_marginEnd="16dp"
+                    android:layout_marginBottom="12dp"
+                    android:paddingStart="14dp" android:paddingEnd="10dp"
+                    android:paddingTop="4dp" android:paddingBottom="4dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🗓"
+                        android:textSize="14sp"
+                        android:layout_marginEnd="8dp"/>
+
+                    <Spinner
+                        android:id="@+id/spinnerWeek"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:background="@null"
+                        android:popupBackground="@color/bg_elevated"
+                        android:spinnerMode="dropdown"/>
+                </LinearLayout>
 
                 <!-- Results section label -->
                 <TextView
@@ -227,7 +262,7 @@
                     android:id="@+id/tvEmptyMarks"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="No results this week"
+                    android:text="No results for this week"
                     android:textColor="@color/text_hint"
                     android:textSize="13sp"
                     android:gravity="center"
@@ -259,7 +294,7 @@
                     android:id="@+id/tvEmptyRoutine"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="No weekly test routine found for the selected week"
+                    android:text="No weekly test routine found"
                     android:textColor="@color/text_hint"
                     android:textSize="13sp"
                     android:gravity="center"
@@ -291,7 +326,7 @@
                     android:id="@+id/tvEmptySyllabus"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="No syllabus found for the selected week"
+                    android:text="No syllabus found"
                     android:textColor="@color/text_hint"
                     android:textSize="13sp"
                     android:gravity="center"
@@ -299,27 +334,65 @@
                     android:visibility="gone"/>
 
             </LinearLayout>
-
         </androidx.core.widget.NestedScrollView>
-
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <!-- Model Tests lives in a separate RecyclerView shown/hidden by tab -->
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipeRefreshModel"
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- MODEL TESTS TAB CONTENT                                     -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <LinearLayout
+        android:id="@+id/containerModelTests"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:orientation="vertical"
         android:visibility="gone">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerModelTests"
+        <!-- ── Model test filter dropdown ── -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:paddingStart="16dp" android:paddingEnd="16dp"
-            android:paddingTop="4dp" android:paddingBottom="80dp"
-            android:clipToPadding="false"/>
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_card_dark"
+            android:layout_marginStart="16dp" android:layout_marginEnd="16dp"
+            android:layout_marginBottom="8dp"
+            android:paddingStart="14dp" android:paddingEnd="10dp"
+            android:paddingTop="4dp" android:paddingBottom="4dp">
 
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📋"
+                android:textSize="14sp"
+                android:layout_marginEnd="8dp"/>
+
+            <Spinner
+                android:id="@+id/spinnerModelTest"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:background="@null"
+                android:popupBackground="@color/bg_elevated"
+                android:spinnerMode="dropdown"/>
+        </LinearLayout>
+
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipeRefreshModel"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerModelTests"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingStart="16dp" android:paddingEnd="16dp"
+                android:paddingTop="4dp" android:paddingBottom="80dp"
+                android:clipToPadding="false"/>
+
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    </LinearLayout>
 
 </LinearLayout>
