@@ -17,6 +17,12 @@ interface ApiService {
     @GET("auth/me")
     suspend fun getMe(): Response<AuthUser>
 
+    @PUT("auth/update-email")
+    suspend fun updateEmail(@Body request: UpdateEmailRequest): Response<MessageResponse>
+
+    @PUT("auth/update-password")
+    suspend fun updatePassword(@Body request: UpdatePasswordRequest): Response<MessageResponse>
+
     // ─── Student Profile ─────────────────────────────────────────────────────
 
     @GET("student/profile")
