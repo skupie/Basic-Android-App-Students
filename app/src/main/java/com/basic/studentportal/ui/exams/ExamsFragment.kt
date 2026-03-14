@@ -1,6 +1,5 @@
 package com.basic.studentportal.ui.exams
 
-import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -17,19 +16,20 @@ import com.basic.studentportal.R
 import com.basic.studentportal.data.model.ModelTestResult
 import com.basic.studentportal.data.model.WeeklyExamAssignment
 import com.basic.studentportal.data.model.WeeklyExamMark
+import com.basic.studentportal.data.model.WeeklyExamSyllabus
 import com.basic.studentportal.databinding.FragmentExamsBinding
-import com.basic.studentportal.databinding.ItemAssignmentBinding
+import com.basic.studentportal.databinding.ItemExamRoutineBinding
+import com.basic.studentportal.databinding.ItemExamSyllabusBinding
 import com.basic.studentportal.databinding.ItemModelResultBinding
 import com.basic.studentportal.databinding.ItemWeeklyMarkBinding
 import com.basic.studentportal.utils.Resource
-import com.basic.studentportal.utils.toPercent
+import com.basic.studentportal.utils.gone
 import com.basic.studentportal.utils.toSubjectLabel
+import com.basic.studentportal.utils.visible
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-private fun Double.toPercent1() = "${this.toInt()}%"
+// ─── Color helpers ────────────────────────────────────────────────────────────
 
 private fun gradeColor(pct: Double): Int = when {
     pct >= 80 -> R.color.grade_excellent
@@ -70,50 +70,81 @@ class WeeklyMarkAdapter : ListAdapter<WeeklyExamMark, WeeklyMarkAdapter.VH>(Diff
             b.tvSubject.text = item.subject.toSubjectLabel()
             b.tvDate.text = item.examDate
             b.tvScore.text = "${item.marksObtained.toInt()}/${item.maxMarks.toInt()}"
-            b.tvPercent.text = pct.toInt().toString() + "%"
+            b.tvPercent.text = "${pct.toInt()}%"
 
             val ctx = b.root.context
-            val color = gradeColor(pct)
-            val bgRes = gradeCardBg(pct)
-            b.cardScore.background = ContextCompat.getDrawable(ctx, bgRes)
-            b.tvPercent.setTextColor(ContextCompat.getColor(ctx, color))
-
+            b.cardScore.background = ContextCompat.getDrawable(ctx, gradeCardBg(pct))
+            b.tvPercent.setTextColor(ContextCompat.getColor(ctx, gradeColor(pct)))
             b.progressScore.max = 100
             b.progressScore.progress = pct.toInt()
-            b.progressScore.progressTintList = ContextCompat.getColorStateList(ctx, color)
+            b.progressScore.progressTintList = ContextCompat.getColorStateList(ctx, gradeColor(pct))
 
             b.tvRemarks.text = item.remarks ?: ""
             b.tvRemarks.visibility = if (!item.remarks.isNullOrBlank()) View.VISIBLE else View.GONE
         }
     }
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = VH(
         ItemWeeklyMarkBinding.inflate(LayoutInflater.from(parent.context), parent, false))
     override fun onBindViewHolder(holder: VH, position: Int) = holder.bind(getItem(position))
-
     class DiffCb : DiffUtil.ItemCallback<WeeklyExamMark>() {
         override fun areItemsTheSame(a: WeeklyExamMark, b: WeeklyExamMark) = a.id == b.id
         override fun areContentsTheSame(a: WeeklyExamMark, b: WeeklyExamMark) = a == b
     }
 }
 
-// ─── Assignment Adapter ───────────────────────────────────────────────────────
+// ─── Exam Routine Adapter (uses WeeklyExamAssignment) ────────────────────────
 
-class AssignmentAdapter : ListAdapter<WeeklyExamAssignment, AssignmentAdapter.VH>(DiffCb()) {
-    inner class VH(private val b: ItemAssignmentBinding) : RecyclerView.ViewHolder(b.root) {
+class ExamRoutineAdapter : ListAdapter<WeeklyExamAssignment, ExamRoutineAdapter.VH>(DiffCb()) {
+    inner class VH(private val b: ItemExamRoutineBinding) : RecyclerView.ViewHolder(b.root) {
         fun bind(item: WeeklyExamAssignment) {
-            b.tvSubject.text = item.subject.toSubjectLabel()
+            // Parse "2026-03-07" → day "07", month "MAR"
+            val dateParts = item.examDate.split("-")
+            b.tvDay.text = dateParts.getOrNull(2) ?: "—"
+            b.tvMonth.text = monthAbbr(dateParts.getOrNull(1)?.toIntOrNull())
             b.tvDate.text = item.examDate
-            b.tvName.text = item.examName ?: "Exam"
+            b.tvExamName.text = item.examName ?: "Weekly Test"
+            b.tvSubject.text = item.subject.toSubjectLabel()
             b.tvTeacher.text = item.teacherName ?: ""
+            b.tvTeacher.visibility = if (item.teacherName.isNullOrBlank()) View.GONE else View.VISIBLE
+        }
+
+        private fun monthAbbr(m: Int?): String = when (m) {
+            1 -> "JAN"; 2 -> "FEB"; 3 -> "MAR"; 4 -> "APR"; 5 -> "MAY"; 6 -> "JUN"
+            7 -> "JUL"; 8 -> "AUG"; 9 -> "SEP"; 10 -> "OCT"; 11 -> "NOV"; 12 -> "DEC"
+            else -> "—"
         }
     }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = VH(
-        ItemAssignmentBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        ItemExamRoutineBinding.inflate(LayoutInflater.from(parent.context), parent, false))
     override fun onBindViewHolder(holder: VH, position: Int) = holder.bind(getItem(position))
     class DiffCb : DiffUtil.ItemCallback<WeeklyExamAssignment>() {
         override fun areItemsTheSame(a: WeeklyExamAssignment, b: WeeklyExamAssignment) = a.id == b.id
         override fun areContentsTheSame(a: WeeklyExamAssignment, b: WeeklyExamAssignment) = a == b
+    }
+}
+
+// ─── Syllabus Adapter ─────────────────────────────────────────────────────────
+
+class SyllabusAdapter : ListAdapter<WeeklyExamSyllabus, SyllabusAdapter.VH>(DiffCb()) {
+    inner class VH(private val b: ItemExamSyllabusBinding) : RecyclerView.ViewHolder(b.root) {
+        fun bind(item: WeeklyExamSyllabus) {
+            b.tvSubject.text = item.subject.toSubjectLabel()
+            b.tvWeekRange.text = buildString {
+                append(item.weekStartDate)
+                if (!item.weekEndDate.isNullOrBlank()) append(" – ${item.weekEndDate}")
+            }
+            b.tvTitle.text = item.title ?: ""
+            b.tvTitle.visibility = if (item.title.isNullOrBlank()) View.GONE else View.VISIBLE
+            b.tvDetails.text = item.syllabusDetails ?: "—"
+            b.tvSharedBy.text = item.createdByName?.let { "by $it" } ?: ""
+        }
+    }
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = VH(
+        ItemExamSyllabusBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+    override fun onBindViewHolder(holder: VH, position: Int) = holder.bind(getItem(position))
+    class DiffCb : DiffUtil.ItemCallback<WeeklyExamSyllabus>() {
+        override fun areItemsTheSame(a: WeeklyExamSyllabus, b: WeeklyExamSyllabus) = a.id == b.id
+        override fun areContentsTheSame(a: WeeklyExamSyllabus, b: WeeklyExamSyllabus) = a == b
     }
 }
 
@@ -122,31 +153,25 @@ class AssignmentAdapter : ListAdapter<WeeklyExamAssignment, AssignmentAdapter.VH
 class ModelResultAdapter : ListAdapter<ModelTestResult, ModelResultAdapter.VH>(DiffCb()) {
     inner class VH(private val b: ItemModelResultBinding) : RecyclerView.ViewHolder(b.root) {
         fun bind(item: ModelTestResult) {
+            val ctx = b.root.context
             b.tvTestName.text = item.testName ?: "Model Test"
             b.tvSubject.text = item.subject.toSubjectLabel()
 
-            val ctx = b.root.context
-            val bgRes = gradeLetterCardBg(item.grade)
-            val colorRes = gradeLetterColor(item.grade)
-            b.cardGrade.background = ContextCompat.getDrawable(ctx, bgRes)
+            b.cardGrade.background = ContextCompat.getDrawable(ctx, gradeLetterCardBg(item.grade))
             b.tvGrade.text = item.grade
-            b.tvGrade.setTextColor(ContextCompat.getColor(ctx, colorRes))
+            b.tvGrade.setTextColor(ContextCompat.getColor(ctx, gradeLetterColor(item.grade)))
             b.tvGradePoint.text = "${item.gradePoint} GPA"
 
-            // MCQ / CQ in clean "26/30" format matching mockup
             b.tvMcq.text = item.mcqMark?.let { "${it.toInt()}/${item.mcqMax?.toInt() ?: "?"}" } ?: "—"
             b.tvCq.text = item.cqMark?.let { "${it.toInt()}/${item.cqMax?.toInt() ?: "?"}" } ?: "—"
 
             val totalMax = (item.mcqMax ?: 0.0) + (item.cqMax ?: 0.0) + (item.practicalMax ?: 0.0)
             b.tvTotal.text = "${item.totalMark.toInt()}/${totalMax.toInt()}"
-            b.tvTotal.setTextColor(ContextCompat.getColor(ctx, colorRes))
+            b.tvTotal.setTextColor(ContextCompat.getColor(ctx, gradeLetterColor(item.grade)))
 
-            if (!item.year.isNullOrBlank()) {
-                b.tvYear.text = item.year
-                b.tvYear.visibility = View.VISIBLE
-            } else {
-                b.tvYear.visibility = View.GONE
-            }
+            b.tvYear.visibility = if (!item.year.isNullOrBlank()) {
+                b.tvYear.text = item.year; View.VISIBLE
+            } else View.GONE
         }
     }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = VH(
@@ -166,11 +191,13 @@ class ExamsFragment : Fragment() {
     private var _binding: FragmentExamsBinding? = null
     private val binding get() = _binding!!
     private val viewModel: ExamsViewModel by viewModels()
+
     private val marksAdapter = WeeklyMarkAdapter()
-    private val assignmentAdapter = AssignmentAdapter()
+    private val routineAdapter = ExamRoutineAdapter()
+    private val syllabusAdapter = SyllabusAdapter()
     private val modelResultAdapter = ModelResultAdapter()
 
-    private var selectedTab = 0
+    private var isWeeklyTestTab = true
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -182,84 +209,120 @@ class ExamsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // ── RecyclerView ──────────────────────────────────────────────────────
-        binding.recyclerExams.layoutManager = LinearLayoutManager(requireContext())
-        binding.recyclerExams.adapter = marksAdapter
+        // ── Recyclers ─────────────────────────────────────────────────────────
+        binding.recyclerMarks.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = marksAdapter
+        }
+        binding.recyclerRoutine.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = routineAdapter
+        }
+        binding.recyclerSyllabus.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = syllabusAdapter
+        }
+        binding.recyclerModelTests.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = modelResultAdapter
+        }
 
-        // ── Pill tabs ─────────────────────────────────────────────────────────
-        selectTab(0)
-        binding.tabMarks.setOnClickListener { selectTab(0) }
-        binding.tabAssignments.setOnClickListener { selectTab(1) }
-        binding.tabModelTests.setOnClickListener { selectTab(2) }
+        // ── Tabs ──────────────────────────────────────────────────────────────
+        selectTab(weeklyTest = true)
+        binding.tabWeeklyTest.setOnClickListener { selectTab(weeklyTest = true) }
+        binding.tabModelTests.setOnClickListener { selectTab(weeklyTest = false) }
 
+        // ── Refresh ───────────────────────────────────────────────────────────
         binding.swipeRefresh.setOnRefreshListener { viewModel.loadAll() }
+        binding.swipeRefreshModel.setOnRefreshListener { viewModel.loadAll() }
 
-        // ── Marks + hero stats ────────────────────────────────────────────────
+        // ── Collect: marks ────────────────────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.marks.collect { state ->
                 binding.swipeRefresh.isRefreshing = state is Resource.Loading
                 if (state is Resource.Success) {
-                    marksAdapter.submitList(state.data.data)
-                    bindHeroCard(state.data.data)
+                    val list = state.data.data
+                    marksAdapter.submitList(list)
+                    binding.tvEmptyMarks.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
+                    bindHeroCard(list)
                 }
             }
         }
 
+        // ── Collect: assignments → weekly test routine ────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.assignments.collect { state ->
-                if (state is Resource.Success) assignmentAdapter.submitList(state.data.data)
+                if (state is Resource.Success) {
+                    val list = state.data.data
+                    routineAdapter.submitList(list)
+                    binding.tvEmptyRoutine.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
+                }
             }
         }
 
+        // ── Collect: syllabi ──────────────────────────────────────────────────
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.syllabi.collect { state ->
+                if (state is Resource.Success) {
+                    val list = state.data.data
+                    syllabusAdapter.submitList(list)
+                    binding.tvEmptySyllabus.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
+                }
+            }
+        }
+
+        // ── Collect: model results ────────────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.modelResults.collect { state ->
-                if (state is Resource.Success) modelResultAdapter.submitList(state.data.data)
+                binding.swipeRefreshModel.isRefreshing = state is Resource.Loading
+                if (state is Resource.Success) {
+                    val list = state.data.data
+                    modelResultAdapter.submitList(list)
+                }
             }
         }
     }
 
     private fun bindHeroCard(marks: List<WeeklyExamMark>) {
-        if (marks.isEmpty()) return
+        if (marks.isEmpty()) {
+            binding.tvAvgPercent.text = "—"
+            binding.tvPerformanceLabel.text = "No data"
+            binding.tvTotalExams.text = "0"
+            binding.tvBestScore.text = "—"
+            binding.tvLowestScore.text = "—"
+            return
+        }
         val percents = marks.map { m ->
             m.percentage ?: if (m.maxMarks > 0) m.marksObtained / m.maxMarks * 100 else 0.0
         }
         val avg = percents.average()
-        val best = percents.maxOrNull() ?: 0.0
-        val lowest = percents.minOrNull() ?: 0.0
-
         binding.tvAvgPercent.text = avg.toInt().toString()
         binding.tvTotalExams.text = marks.size.toString()
-        binding.tvBestScore.text = "${best.toInt()}%"
-        binding.tvLowestScore.text = "${lowest.toInt()}%"
-
-        val label = when {
+        binding.tvBestScore.text = "${percents.max().toInt()}%"
+        binding.tvLowestScore.text = "${percents.min().toInt()}%"
+        binding.tvPerformanceLabel.text = when {
             avg >= 85 -> "Excellent 🏆"
             avg >= 70 -> "Good 📈"
             avg >= 55 -> "Average 📚"
             else -> "Needs Work ⚠"
         }
-        binding.tvPerformanceLabel.text = label
-        binding.tvTrendDelta.text = "" // trend data not in API yet
     }
 
-    private fun selectTab(idx: Int) {
-        selectedTab = idx
+    private fun selectTab(weeklyTest: Boolean) {
+        isWeeklyTestTab = weeklyTest
         val ctx = requireContext()
-        val activeDrawable = ContextCompat.getDrawable(ctx, R.drawable.bg_tab_selected)
-        val activeTxt = ContextCompat.getColor(ctx, R.color.text_primary)
-        val inactiveTxt = ContextCompat.getColor(ctx, R.color.text_hint)
+        val activeBg = ContextCompat.getDrawable(ctx, R.drawable.bg_tab_selected)
+        val activeColor = ContextCompat.getColor(ctx, R.color.text_primary)
+        val inactiveColor = ContextCompat.getColor(ctx, R.color.text_hint)
 
-        listOf(binding.tabMarks, binding.tabAssignments, binding.tabModelTests)
-            .forEachIndexed { i, tv ->
-                tv.background = if (i == idx) activeDrawable else null
-                tv.setTextColor(if (i == idx) activeTxt else inactiveTxt)
-            }
+        binding.tabWeeklyTest.background = if (weeklyTest) activeBg else null
+        binding.tabWeeklyTest.setTextColor(if (weeklyTest) activeColor else inactiveColor)
+        binding.tabModelTests.background = if (!weeklyTest) activeBg else null
+        binding.tabModelTests.setTextColor(if (!weeklyTest) activeColor else inactiveColor)
 
-        binding.recyclerExams.adapter = when (idx) {
-            1 -> assignmentAdapter
-            2 -> modelResultAdapter
-            else -> marksAdapter
-        }
+        // Show/hide content panes
+        binding.swipeRefresh.visibility = if (weeklyTest) View.VISIBLE else View.GONE
+        binding.swipeRefreshModel.visibility = if (!weeklyTest) View.VISIBLE else View.GONE
     }
 
     override fun onDestroyView() {
