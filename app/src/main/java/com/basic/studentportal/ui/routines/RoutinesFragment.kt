@@ -45,7 +45,11 @@ class RoutinesViewModel @Inject constructor(private val repository: RoutineRepos
 
     var selectedDate: String? = null
 
-    init { loadRoutines() }
+    init {
+        // Pass today's date explicitly — null lets the server return the whole week
+        val todayStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+        loadRoutines(todayStr)
+    }
 
     fun loadRoutines(date: String? = selectedDate) {
         viewModelScope.launch {
@@ -166,23 +170,21 @@ class RoutinesFragment : Fragment() {
                         binding.swipeRefresh.isRefreshing = false
                         val data = state.data
 
-                        // On first successful load, build available dates list
-                        // and snap currentIndex to today
+                        // On first successful load, build the dates list and pin to today
                         if (availableDates.isEmpty() && !data.availableDates.isNullOrEmpty()) {
                             availableDates = data.availableDates
 
                             val todayStr = LocalDate.now()
                                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                             currentIndex = availableDates.indexOf(todayStr)
-
-                            // Fall back to the last date if today isn't in the list
                             if (currentIndex < 0) currentIndex = availableDates.size - 1
                         }
 
-                        // Show the resolved date header
-                        val resolvedDate = data.currentDate
+                        // Header: prefer server echo, fall back to what we requested
+                        val displayDate = data.currentDate
+                            ?: viewModel.selectedDate
                             ?: availableDates.getOrNull(currentIndex)
-                        binding.tvCurrentDate.text = formatDateLabel(resolvedDate)
+                        binding.tvCurrentDate.text = formatDateLabel(displayDate)
 
                         val count = data.data.size
                         binding.tvClassCount.text = when {
