@@ -7,10 +7,12 @@
     android:orientation="vertical"
     android:background="@color/bg_primary">
 
+    <!-- Toolbar hidden — each fragment owns its own header bar -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
+        android:layout_height="0dp"
+        android:visibility="gone"
         android:background="@color/bg_secondary"
         app:titleTextColor="@color/text_primary"/>
 
