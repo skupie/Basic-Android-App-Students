@@ -24,6 +24,9 @@ class FeesFragment : Fragment() {
     private var _binding: FragmentFeesBinding? = null
     private val binding get() = _binding!!
     private val viewModel: FeesViewModel by viewModels()
+
+    // InvoiceAdapter is constructed with an initial fee of 0; the real fee is
+    // pushed in via setMonthlyFee() once the invoice list arrives.
     private val invoiceAdapter = InvoiceAdapter()
     private val paymentAdapter = PaymentAdapter()
 
@@ -72,29 +75,33 @@ class FeesFragment : Fragment() {
 
                     is Resource.Success -> {
                         binding.swipeRefresh.isRefreshing = false
+
+                        // ── Canonical monthly fee ─────────────────────────────
+                        // The server can return a wrong/reduced amountDue on
+                        // individual invoices (e.g. 1,000 instead of 2,000 for
+                        // March in the screenshot). We derive the correct full
+                        // monthly fee by taking the MAXIMUM amountDue across all
+                        // invoices — this is always the unmodified original fee.
+                        val monthlyFee = state.data.data
+                            .maxOfOrNull { it.amountDue } ?: 0.0
+
+                        // Push the canonical fee into the adapter so every row
+                        // shows the same DUE and computes BALANCE consistently.
+                        invoiceAdapter.setMonthlyFee(monthlyFee)
                         invoiceAdapter.submitList(state.data.data)
 
+                        // ── Hero outstanding card ─────────────────────────────
                         val ds = state.data.dueSummary
                         if (ds != null && ds.dueMonthsCount > 0) {
                             binding.cardDueSummary.visible()
 
-                            // Monthly fee = the maximum amountDue seen across ALL invoices.
-                            // amountDue is the original full-month fee set when the invoice was
-                            // created. Using max() ensures we never accidentally grab a reduced
-                            // amount caused by adjustments on any single invoice.
-                            val monthlyFee = state.data.data
-                                .maxOfOrNull { it.amountDue } ?: 0.0
-
-                            // Total outstanding = number of due months × full monthly fee.
-                            // We intentionally do NOT use server's totalDue because it may
-                            // subtract partial payments instead of showing the real obligation.
+                            // Total = number of due months × canonical monthly fee
                             val totalOutstanding = ds.dueMonthsCount * monthlyFee
                             binding.tvTotalDue.text = totalOutstanding.toCurrency()
 
                             binding.tvOverdueBadge.text =
                                 "${ds.dueMonthsCount} Month${if (ds.dueMonthsCount != 1) "s" else ""} Overdue"
 
-                            // Label: "February & March unpaid"
                             val unpaidLabels = state.data.data
                                 .filter { it.status != "paid" }
                                 .mapNotNull { it.billingMonthLabel ?: it.billingMonth }
@@ -102,7 +109,6 @@ class FeesFragment : Fragment() {
                             binding.tvDueMonths.text = if (unpaidLabels.isNotEmpty())
                                 "${unpaidLabels.joinToString(" & ")} unpaid"
                             else "${ds.dueMonthsCount} month(s) pending"
-
                         } else {
                             binding.cardDueSummary.gone()
                         }
