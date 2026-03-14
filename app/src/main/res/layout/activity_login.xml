@@ -9,55 +9,69 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:minHeight="@dimen/screen_min_height">
+        android:orientation="vertical">
 
-        <!-- Logo + Hero Text -->
+        <!-- ── Logo + Branding ── -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:gravity="center"
             android:paddingStart="28dp"
             android:paddingEnd="28dp"
             android:paddingTop="56dp"
-            android:paddingBottom="32dp">
+            android:paddingBottom="28dp">
 
+            <!-- App Logo -->
             <androidx.cardview.widget.CardView
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:layout_marginBottom="28dp"
+                android:layout_width="88dp"
+                android:layout_height="88dp"
+                android:layout_marginBottom="16dp"
                 app:cardBackgroundColor="@color/brand_primary"
-                app:cardCornerRadius="18dp"
+                app:cardCornerRadius="24dp"
                 app:cardElevation="0dp">
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
                     android:text="🎓"
-                    android:textSize="26sp"/>
+                    android:textSize="42sp"/>
             </androidx.cardview.widget.CardView>
 
+            <!-- Academy Name -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="WELCOME BACK"
-                android:textColor="@color/text_muted"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.12"
-                android:layout_marginBottom="8dp"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Sign in to your\nStudent Portal"
+                android:text="Basic Academy"
                 android:textColor="@color/text_primary"
-                android:textSize="30sp"
+                android:textSize="28sp"
                 android:textStyle="bold"
-                android:lineSpacingMultiplier="1.1"/>
+                android:layout_marginBottom="6dp"/>
+
+            <!-- Tagline pill -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Only for HSC"
+                android:textColor="@color/brand_light"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:background="@drawable/bg_pill_brand"
+                android:paddingStart="16dp" android:paddingEnd="16dp"
+                android:paddingTop="5dp" android:paddingBottom="5dp"
+                android:letterSpacing="0.04"/>
         </LinearLayout>
 
-        <!-- Form -->
+        <!-- ── Divider ── -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/border_default"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:layout_marginBottom="28dp"/>
+
+        <!-- ── Form ── -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -65,7 +79,42 @@
             android:paddingStart="24dp"
             android:paddingEnd="24dp">
 
+            <!-- Login method toggle: Email / Mobile -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:orientation="horizontal"
+                android:background="@drawable/bg_card_dark"
+                android:layout_marginBottom="22dp"
+                android:padding="4dp">
+
+                <TextView
+                    android:id="@+id/tabEmail"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Email"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/bg_tab_selected"
+                    android:textColor="@color/text_primary"/>
+
+                <TextView
+                    android:id="@+id/tabMobile"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Mobile"
+                    android:textSize="13sp"
+                    android:background="@null"
+                    android:textColor="@color/text_hint"/>
+            </LinearLayout>
+
+            <!-- Email field (visible by default) -->
             <TextView
+                android:id="@+id/labelIdentifier"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="EMAIL ADDRESS"
@@ -94,6 +143,28 @@
                     android:paddingBottom="16dp"/>
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Mobile field (hidden by default) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilMobile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                style="@style/Widget.StudentPortal.TextInputLayout"
+                app:endIconMode="none"
+                android:visibility="gone">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etMobile"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="01XXXXXXXXX"
+                    android:inputType="phone"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp"
+                    android:paddingTop="16dp"
+                    android:paddingBottom="16dp"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Password -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -138,7 +209,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginTop="28dp"
+                android:layout_marginTop="24dp"
                 android:visibility="gone"/>
 
             <Button
@@ -153,56 +224,6 @@
                 android:textStyle="bold"
                 android:stateListAnimator="@null"/>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginTop="24dp">
-                <View android:layout_width="0dp" android:layout_height="1dp"
-                    android:layout_weight="1" android:background="@color/border_default"/>
-                <TextView
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="or continue with"
-                    android:textColor="@color/text_muted"
-                    android:textSize="12sp"
-                    android:layout_marginStart="14dp"
-                    android:layout_marginEnd="14dp"/>
-                <View android:layout_width="0dp" android:layout_height="1dp"
-                    android:layout_weight="1" android:background="@color/border_default"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="20dp">
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/btnBiometric"
-                    android:layout_width="52dp"
-                    android:layout_height="52dp"
-                    app:cardBackgroundColor="@color/bg_surface"
-                    app:cardCornerRadius="14dp"
-                    app:cardElevation="0dp"
-                    app:strokeColor="@color/border_default"
-                    app:strokeWidth="1dp">
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:text="👆"
-                        android:textSize="22sp"/>
-                </androidx.cardview.widget.CardView>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:text="Fingerprint or Face ID"
-                    android:textColor="@color/text_hint"
-                    android:textSize="12sp"/>
-            </LinearLayout>
         </LinearLayout>
 
         <View android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"/>
@@ -211,9 +232,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:paddingBottom="28dp"
-            android:text="Having trouble? Contact Support"
+            android:paddingBottom="32dp"
+            android:paddingTop="24dp"
+            android:text="Basic Academy · Student Portal"
             android:textColor="@color/text_disabled"
             android:textSize="12sp"/>
+
     </LinearLayout>
 </ScrollView>
