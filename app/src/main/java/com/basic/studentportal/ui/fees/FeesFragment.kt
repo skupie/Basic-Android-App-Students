@@ -77,16 +77,12 @@ class FeesFragment : Fragment() {
                         invoiceAdapter.submitList(state.data.data)
 
                         val ds = state.data.dueSummary
-                        if (ds != null && ds.dueMonthsCount > 0) {
+                        if (ds != null && ds.totalDue > 0) {
                             binding.cardDueSummary.visible()
 
-                            // Fix #9: due = number of due months × monthly fee (amountDue per invoice)
-                            // We sum amountDue (not outstandingAmount) for all non-paid invoices
-                            val monthlyFee = state.data.data
-                                .firstOrNull { it.status != "paid" }
-                                ?.amountDue ?: 0.0
-                            val calculatedDue = ds.dueMonthsCount * monthlyFee
-                            binding.tvTotalDue.text = calculatedDue.toCurrency()
+                            // Use server's totalDue directly — it already accounts for
+                            // partial payments and any adjustments. Do NOT recalculate.
+                            binding.tvTotalDue.text = ds.totalDue.toCurrency()
 
                             binding.tvOverdueBadge.text = "${ds.dueMonthsCount} Month${if (ds.dueMonthsCount != 1) "s" else ""} Overdue"
 
