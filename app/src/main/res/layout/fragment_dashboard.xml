@@ -158,8 +158,18 @@
                         android:layout_height="wrap_content"
                         android:text="Academic Year"
                         android:textColor="#99FFFFFF"
-                        android:textSize="13sp"
-                        android:layout_marginBottom="16dp"/>
+                        android:textSize="13sp"/>
+
+                    <!-- Enrollment / Admission date -->
+                    <TextView android:id="@+id/tvEnrollmentDate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=""
+                        android:textColor="#77FFFFFF"
+                        android:textSize="11sp"
+                        android:layout_marginTop="3dp"
+                        android:layout_marginBottom="16dp"
+                        android:visibility="gone"/>
 
                     <!-- Stats row: Attendance | Avg Score | Due Fees -->
                     <LinearLayout
@@ -303,9 +313,9 @@
                             android:gravity="center"/>
                     </LinearLayout>
 
-                    <!-- Fees -->
+                    <!-- Schedule -->
                     <LinearLayout
-                        android:id="@+id/quickFees"
+                        android:id="@+id/quickSchedule"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -319,13 +329,13 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="💳"
+                            android:text="🗓️"
                             android:textSize="22sp"/>
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Fees"
+                            android:text="Schedule"
                             android:textColor="@color/text_secondary"
                             android:textSize="11sp"
                             android:layout_marginTop="6dp"
