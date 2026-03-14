@@ -80,12 +80,14 @@ class FeesFragment : Fragment() {
                         if (ds != null && ds.dueMonthsCount > 0) {
                             binding.cardDueSummary.visible()
 
-                            // Total outstanding = dueMonthsCount × monthly fee.
-                            // amountDue on any invoice IS the full monthly fee (server never
-                            // reduces it for partial payments — only outstandingAmount changes).
-                            // We pick the first invoice of any status so we always get a value.
+                            // Total outstanding = dueMonthsCount × full monthly fee.
+                            // We read amountDue from any non-paid invoice because amountDue
+                            // is always the full monthly fee (server never reduces it).
+                            // Fall back to any invoice if no unpaid ones are visible.
                             val monthlyFee = state.data.data
-                                .firstOrNull()?.amountDue ?: 0.0
+                                .firstOrNull { it.status != "paid" }?.amountDue
+                                ?: state.data.data.firstOrNull()?.amountDue
+                                ?: 0.0
                             val totalOutstanding = ds.dueMonthsCount * monthlyFee
                             binding.tvTotalDue.text = totalOutstanding.toCurrency()
 
