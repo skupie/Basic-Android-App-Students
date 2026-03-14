@@ -15,6 +15,7 @@ import com.basic.studentportal.data.model.DashboardResponse
 import com.basic.studentportal.data.model.Routine
 import com.basic.studentportal.databinding.FragmentDashboardBinding
 import com.basic.studentportal.utils.Resource
+import com.basic.studentportal.utils.animatePercent
 import com.basic.studentportal.utils.gone
 import com.basic.studentportal.utils.toCurrency
 import com.basic.studentportal.utils.toPercent
@@ -51,16 +52,7 @@ class DashboardFragment : Fragment() {
             findNavController().navigate(R.id.noticesFragment)
         }
         binding.btnSettings.setOnClickListener {
-            // Show a simple logout confirmation popup
-            android.app.AlertDialog.Builder(requireContext())
-                .setTitle("Options")
-                .setItems(arrayOf("Logout")) { _, which ->
-                    if (which == 0) {
-                        (requireActivity() as? com.basic.studentportal.ui.main.MainActivity)
-                            ?.performLogout()
-                    }
-                }
-                .show()
+            findNavController().navigate(R.id.settingsFragment)
         }
 
         // Quick access navigation
@@ -106,9 +98,8 @@ class DashboardFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.attendanceSummary.collect { state ->
                 when (state) {
-                    is Resource.Success -> {
-                        binding.tvAttendancePct.text = state.data.attendancePercent.toPercent()
-                    }
+                    is Resource.Success ->
+                        binding.tvAttendancePct.animatePercent(to = state.data.attendancePercent)
                     is Resource.Loading -> binding.tvAttendancePct.text = "—"
                     is Resource.Error   -> binding.tvAttendancePct.text = "—"
                 }
@@ -158,7 +149,7 @@ class DashboardFragment : Fragment() {
         // tvAttendancePct is populated by the attendanceSummary collector above
 
         data.weeklyExamSummary?.let { exam ->
-            binding.tvAvgScore.text = exam.averagePercent.toPercent()
+            binding.tvAvgScore.animatePercent(to = exam.averagePercent)
         }
 
         // Fix #9: due = dueMonthCount × student.monthlyFee
