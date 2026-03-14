@@ -50,8 +50,8 @@ class DashboardFragment : Fragment() {
         binding.quickAttendance.setOnClickListener {
             findNavController().navigate(R.id.attendanceFragment)
         }
-        binding.quickFees.setOnClickListener {
-            findNavController().navigate(R.id.feesFragment)
+        binding.quickSchedule.setOnClickListener {
+            findNavController().navigate(R.id.routinesFragment)
         }
         binding.quickResults.setOnClickListener {
             findNavController().navigate(R.id.examsFragment)
@@ -122,6 +122,13 @@ class DashboardFragment : Fragment() {
             }
             binding.tvAcademicYear.text = student.academicYear
                 ?.let { "Academic Year $it" } ?: ""
+
+            if (!student.enrollmentDate.isNullOrBlank()) {
+                binding.tvEnrollmentDate.text = "📅 Admitted: ${student.enrollmentDate}"
+                binding.tvEnrollmentDate.visibility = android.view.View.VISIBLE
+            } else {
+                binding.tvEnrollmentDate.visibility = android.view.View.GONE
+            }
 
             binding.chipStatus.text = "● ${student.status.uppercase()}"
             binding.chipStatus.setChipBackgroundColorResource(
