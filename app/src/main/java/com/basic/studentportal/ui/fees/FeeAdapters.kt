@@ -15,37 +15,44 @@ import com.basic.studentportal.databinding.ItemPaymentBinding
 import com.basic.studentportal.utils.toCurrency
 
 /**
- * [monthlyFee] is the canonical full monthly fee, set from FeesFragment
- * as the max(amountDue) across all invoices. Every row uses this same
- * value for DUE and BALANCE regardless of what the server puts in
- * individual invoice.amountDue fields.
+ * [monthlyFee] is the canonical full monthly fee used for every row's DUE and
+ * BALANCE columns. Always set this via [setMonthlyFee] BEFORE calling [submitList]
+ * so the value is available when DiffUtil dispatches the first bind pass.
  */
 class InvoiceAdapter(
     private var monthlyFee: Double = 0.0
 ) : ListAdapter<FeeInvoice, InvoiceAdapter.VH>(DiffCb()) {
 
+    /**
+     * Update the canonical monthly fee.
+     * Do NOT call notifyDataSetChanged() here — the caller must call submitList()
+     * immediately after, which triggers its own full rebind via DiffUtil.
+     * Calling notifyDataSetChanged() + submitList() together causes a race that
+     * drops the month-name text on the first card.
+     */
     fun setMonthlyFee(fee: Double) {
         monthlyFee = fee
-        notifyDataSetChanged()
+        // No notifyDataSetChanged — submitList() called right after handles rebinding
     }
 
     inner class VH(private val b: ItemInvoiceBinding) : RecyclerView.ViewHolder(b.root) {
         fun bind(item: FeeInvoice) {
             val ctx = b.root.context
 
+            // Month label — always bound first so it is never blank
             b.tvMonth.text = item.billingMonthLabel ?: item.billingMonth
 
-            // DUE — always the canonical monthly fee, never item.amountDue
+            // DUE — canonical monthly fee, same for every row
             b.tvAmountDue.text = monthlyFee.toCurrency()
 
-            // PAID — actual amount received from the student
+            // PAID — actual payment received from the student
             b.tvAmountPaid.text = item.amountPaid.toCurrency()
 
-            // BALANCE — canonical fee minus what has actually been paid
+            // BALANCE — canonical fee minus actual payment, computed locally
             val balance = (monthlyFee - item.amountPaid).coerceAtLeast(0.0)
             b.tvOutstanding.text = balance.toCurrency()
 
-            // Due date
+            // Due date row
             if (!item.dueDate.isNullOrBlank()) {
                 b.tvDueDate.text = "Due: ${item.dueDate}"
                 b.tvDueDate.visibility = View.VISIBLE
@@ -53,7 +60,7 @@ class InvoiceAdapter(
                 b.tvDueDate.visibility = View.GONE
             }
 
-            // Status badge — comes from the server
+            // Status badge + balance colour
             when (item.status.lowercase()) {
                 "paid" -> {
                     b.tvStatus.text = "PAID ✓"
