@@ -23,6 +23,7 @@ import com.basic.studentportal.databinding.ItemExamSyllabusBinding
 import com.basic.studentportal.databinding.ItemModelResultBinding
 import com.basic.studentportal.databinding.ItemWeeklyMarkBinding
 import com.basic.studentportal.utils.Resource
+import com.basic.studentportal.utils.animateCount
 import com.basic.studentportal.utils.gone
 import com.basic.studentportal.utils.toSubjectLabel
 import com.basic.studentportal.utils.visible
