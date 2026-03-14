@@ -14,7 +14,20 @@ import com.basic.studentportal.databinding.ItemInvoiceBinding
 import com.basic.studentportal.databinding.ItemPaymentBinding
 import com.basic.studentportal.utils.toCurrency
 
-class InvoiceAdapter : ListAdapter<FeeInvoice, InvoiceAdapter.VH>(DiffCb()) {
+/**
+ * [monthlyFee] is the canonical full monthly fee, set from FeesFragment
+ * as the max(amountDue) across all invoices. Every row uses this same
+ * value for DUE and BALANCE regardless of what the server puts in
+ * individual invoice.amountDue fields.
+ */
+class InvoiceAdapter(
+    private var monthlyFee: Double = 0.0
+) : ListAdapter<FeeInvoice, InvoiceAdapter.VH>(DiffCb()) {
+
+    fun setMonthlyFee(fee: Double) {
+        monthlyFee = fee
+        notifyDataSetChanged()
+    }
 
     inner class VH(private val b: ItemInvoiceBinding) : RecyclerView.ViewHolder(b.root) {
         fun bind(item: FeeInvoice) {
@@ -22,22 +35,17 @@ class InvoiceAdapter : ListAdapter<FeeInvoice, InvoiceAdapter.VH>(DiffCb()) {
 
             b.tvMonth.text = item.billingMonthLabel ?: item.billingMonth
 
-            // ── DUE: always the full monthly fee ─────────────────────────────
-            // amountDue is the original invoice amount and never changes,
-            // regardless of whether a partial payment has been made.
-            b.tvAmountDue.text = item.amountDue.toCurrency()
+            // DUE — always the canonical monthly fee, never item.amountDue
+            b.tvAmountDue.text = monthlyFee.toCurrency()
 
-            // ── PAID: actual amount received from the student ────────────────
-            // Comes directly from the server. Shows 0 ৳ until any payment is made.
+            // PAID — actual amount received from the student
             b.tvAmountPaid.text = item.amountPaid.toCurrency()
 
-            // ── BALANCE: computed locally = full fee − paid ──────────────────
-            // We do NOT use outstandingAmount from the server because it can
-            // differ if the server applies discounts or rounding adjustments.
-            val balance = (item.amountDue - item.amountPaid).coerceAtLeast(0.0)
+            // BALANCE — canonical fee minus what has actually been paid
+            val balance = (monthlyFee - item.amountPaid).coerceAtLeast(0.0)
             b.tvOutstanding.text = balance.toCurrency()
 
-            // ── Due date ──────────────────────────────────────────────────────
+            // Due date
             if (!item.dueDate.isNullOrBlank()) {
                 b.tvDueDate.text = "Due: ${item.dueDate}"
                 b.tvDueDate.visibility = View.VISIBLE
@@ -45,31 +53,24 @@ class InvoiceAdapter : ListAdapter<FeeInvoice, InvoiceAdapter.VH>(DiffCb()) {
                 b.tvDueDate.visibility = View.GONE
             }
 
-            // ── Status badge + balance colour ─────────────────────────────────
-            // Status comes from the server:
-            //   "paid"    → only when the full amount has been received
-            //   "partial" → some payment made but not full amount
-            //   anything else → nothing paid yet (pending)
+            // Status badge — comes from the server
             when (item.status.lowercase()) {
                 "paid" -> {
                     b.tvStatus.text = "PAID ✓"
                     b.tvStatus.setTextColor(ContextCompat.getColor(ctx, R.color.success))
                     b.tvStatus.background = ContextCompat.getDrawable(ctx, R.drawable.bg_pill_success)
-                    // Balance is 0 — show in muted colour
                     b.tvOutstanding.setTextColor(ContextCompat.getColor(ctx, R.color.text_hint))
                 }
                 "partial" -> {
                     b.tvStatus.text = "PARTIAL"
                     b.tvStatus.setTextColor(ContextCompat.getColor(ctx, R.color.warning))
                     b.tvStatus.background = ContextCompat.getDrawable(ctx, R.drawable.bg_pill_warning)
-                    // Remaining balance in amber
                     b.tvOutstanding.setTextColor(ContextCompat.getColor(ctx, R.color.warning))
                 }
                 else -> {
                     b.tvStatus.text = "PENDING"
                     b.tvStatus.setTextColor(ContextCompat.getColor(ctx, R.color.danger))
                     b.tvStatus.background = ContextCompat.getDrawable(ctx, R.drawable.bg_pill_danger)
-                    // Full amount still owed — show in red
                     b.tvOutstanding.setTextColor(ContextCompat.getColor(ctx, R.color.danger))
                 }
             }
@@ -86,7 +87,7 @@ class InvoiceAdapter : ListAdapter<FeeInvoice, InvoiceAdapter.VH>(DiffCb()) {
     }
 }
 
-// ─── Payment adapter (unchanged — shows actual payment records) ───────────────
+// ─── Payment adapter ─────────────────────────────────────────────────────────
 
 class PaymentAdapter : ListAdapter<FeePayment, PaymentAdapter.VH>(DiffCb()) {
 
@@ -98,8 +99,7 @@ class PaymentAdapter : ListAdapter<FeePayment, PaymentAdapter.VH>(DiffCb()) {
             b.tvReceipt.text      = item.receiptNumber?.let { "Receipt: $it" } ?: ""
             b.tvRef.text          = item.reference?.let { "Ref: $it" } ?: ""
             b.tvInvoiceMonth.text = item.invoice?.billingMonthLabel
-                ?: item.invoice?.billingMonth
-                ?: ""
+                ?: item.invoice?.billingMonth ?: ""
         }
     }
 
