@@ -41,11 +41,9 @@ class FeesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // ── RecyclerView — was missing LayoutManager ──────────────────────────
         binding.recyclerFees.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerFees.adapter = invoiceAdapter
 
-        // ── Pill tab switching ────────────────────────────────────────────────
         selectTab(invoices = true)
 
         binding.tabInvoices.setOnClickListener {
@@ -64,7 +62,6 @@ class FeesFragment : Fragment() {
             }
         }
 
-        // ── Swipe refresh ─────────────────────────────────────────────────────
         binding.swipeRefresh.setOnRefreshListener { viewModel.refresh() }
 
         // ── Invoices ──────────────────────────────────────────────────────────
@@ -72,6 +69,7 @@ class FeesFragment : Fragment() {
             viewModel.invoices.collect { state ->
                 when (state) {
                     is Resource.Loading -> binding.swipeRefresh.isRefreshing = true
+
                     is Resource.Success -> {
                         binding.swipeRefresh.isRefreshing = false
                         invoiceAdapter.submitList(state.data.data)
@@ -80,19 +78,23 @@ class FeesFragment : Fragment() {
                         if (ds != null && ds.dueMonthsCount > 0) {
                             binding.cardDueSummary.visible()
 
-                            // Total outstanding = dueMonthsCount × full monthly fee.
-                            // We read amountDue from any non-paid invoice because amountDue
-                            // is always the full monthly fee (server never reduces it).
-                            // Fall back to any invoice if no unpaid ones are visible.
+                            // Monthly fee = the maximum amountDue seen across ALL invoices.
+                            // amountDue is the original full-month fee set when the invoice was
+                            // created. Using max() ensures we never accidentally grab a reduced
+                            // amount caused by adjustments on any single invoice.
                             val monthlyFee = state.data.data
-                                .firstOrNull { it.status != "paid" }?.amountDue
-                                ?: state.data.data.firstOrNull()?.amountDue
-                                ?: 0.0
+                                .maxOfOrNull { it.amountDue } ?: 0.0
+
+                            // Total outstanding = number of due months × full monthly fee.
+                            // We intentionally do NOT use server's totalDue because it may
+                            // subtract partial payments instead of showing the real obligation.
                             val totalOutstanding = ds.dueMonthsCount * monthlyFee
                             binding.tvTotalDue.text = totalOutstanding.toCurrency()
 
-                            binding.tvOverdueBadge.text = "${ds.dueMonthsCount} Month${if (ds.dueMonthsCount != 1) "s" else ""} Overdue"
+                            binding.tvOverdueBadge.text =
+                                "${ds.dueMonthsCount} Month${if (ds.dueMonthsCount != 1) "s" else ""} Overdue"
 
+                            // Label: "February & March unpaid"
                             val unpaidLabels = state.data.data
                                 .filter { it.status != "paid" }
                                 .mapNotNull { it.billingMonthLabel ?: it.billingMonth }
@@ -100,10 +102,12 @@ class FeesFragment : Fragment() {
                             binding.tvDueMonths.text = if (unpaidLabels.isNotEmpty())
                                 "${unpaidLabels.joinToString(" & ")} unpaid"
                             else "${ds.dueMonthsCount} month(s) pending"
+
                         } else {
                             binding.cardDueSummary.gone()
                         }
                     }
+
                     is Resource.Error -> {
                         binding.swipeRefresh.isRefreshing = false
                         binding.cardDueSummary.gone()
@@ -122,15 +126,21 @@ class FeesFragment : Fragment() {
 
     private fun selectTab(invoices: Boolean) {
         if (invoices) {
-            binding.tabInvoices.background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_tab_selected)
-            binding.tabInvoices.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary))
+            binding.tabInvoices.background =
+                ContextCompat.getDrawable(requireContext(), R.drawable.bg_tab_selected)
+            binding.tabInvoices.setTextColor(
+                ContextCompat.getColor(requireContext(), R.color.text_primary))
             binding.tabPayments.background = null
-            binding.tabPayments.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_hint))
+            binding.tabPayments.setTextColor(
+                ContextCompat.getColor(requireContext(), R.color.text_hint))
         } else {
-            binding.tabPayments.background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_tab_selected)
-            binding.tabPayments.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary))
+            binding.tabPayments.background =
+                ContextCompat.getDrawable(requireContext(), R.drawable.bg_tab_selected)
+            binding.tabPayments.setTextColor(
+                ContextCompat.getColor(requireContext(), R.color.text_primary))
             binding.tabInvoices.background = null
-            binding.tabInvoices.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_hint))
+            binding.tabInvoices.setTextColor(
+                ContextCompat.getColor(requireContext(), R.color.text_hint))
         }
     }
 
