@@ -101,7 +101,13 @@ class FeesFragment : Fragment() {
 
                             val unpaidLabels = state.data.data
                                 .filter { it.status != "paid" }
-                                .mapNotNull { it.billingMonthLabel ?: it.billingMonth }
+                                .map { inv ->
+                                    // billingMonthLabel is human-readable when the server sends it
+                                    // (e.g. "February 2026"). When it is null, billingMonth is a
+                                    // raw "yyyy-MM" string — parse and format it ourselves.
+                                    inv.billingMonthLabel
+                                        ?: formatBillingMonth(inv.billingMonth)
+                                }
                                 .takeLast(2)
                             binding.tvDueMonths.text = if (unpaidLabels.isNotEmpty())
                                 "${unpaidLabels.joinToString(" & ")} unpaid"
@@ -144,6 +150,23 @@ class FeesFragment : Fragment() {
             binding.tabInvoices.background = null
             binding.tabInvoices.setTextColor(
                 ContextCompat.getColor(requireContext(), R.color.text_hint))
+        }
+    }
+
+    /**
+     * Converts a raw "yyyy-MM" billing month string (e.g. "2026-02") into
+     * a readable label (e.g. "February 2026").
+     * Returns the original string unchanged if it can't be parsed.
+     */
+    private fun formatBillingMonth(raw: String): String {
+        return try {
+            val ym = java.time.YearMonth.parse(raw,
+                java.time.format.DateTimeFormatter.ofPattern("yyyy-MM"))
+            val month = ym.month.getDisplayName(
+                java.time.format.TextStyle.FULL, java.util.Locale.ENGLISH)
+            "$month ${ym.year}"
+        } catch (e: Exception) {
+            raw   // fall back to raw value if format is unexpected
         }
     }
 
