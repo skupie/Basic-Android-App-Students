@@ -19,9 +19,18 @@ class InvoiceAdapter : ListAdapter<FeeInvoice, InvoiceAdapter.VH>(DiffCb()) {
     inner class VH(private val b: ItemInvoiceBinding) : RecyclerView.ViewHolder(b.root) {
         fun bind(item: FeeInvoice) {
             b.tvMonth.text = item.billingMonthLabel ?: item.billingMonth
+
+            // DUE always shows the full monthly fee — never reduced.
             b.tvAmountDue.text = item.amountDue.toCurrency()
+
+            // PAID shows only what has actually been received.
             b.tvAmountPaid.text = item.amountPaid.toCurrency()
-            b.tvOutstanding.text = item.outstandingAmount.toCurrency()
+
+            // BALANCE computed locally = full fee − paid.
+            // We do NOT trust outstandingAmount from the server because it may
+            // reflect partial discounts or rounding differently.
+            val balance = (item.amountDue - item.amountPaid).coerceAtLeast(0.0)
+            b.tvOutstanding.text = balance.toCurrency()
 
             // Due date row
             if (!item.dueDate.isNullOrBlank()) {
@@ -37,21 +46,18 @@ class InvoiceAdapter : ListAdapter<FeeInvoice, InvoiceAdapter.VH>(DiffCb()) {
                     b.tvStatus.text = "PAID ✓"
                     b.tvStatus.setTextColor(ContextCompat.getColor(b.root.context, R.color.success))
                     b.tvStatus.background = ContextCompat.getDrawable(b.root.context, R.drawable.bg_pill_success)
-                    // Balance in grey — already fully paid
                     b.tvOutstanding.setTextColor(ContextCompat.getColor(b.root.context, R.color.text_hint))
                 }
                 "partial" -> {
                     b.tvStatus.text = "PARTIAL"
                     b.tvStatus.setTextColor(ContextCompat.getColor(b.root.context, R.color.warning))
                     b.tvStatus.background = ContextCompat.getDrawable(b.root.context, R.drawable.bg_pill_warning)
-                    // Balance in amber
                     b.tvOutstanding.setTextColor(ContextCompat.getColor(b.root.context, R.color.warning))
                 }
                 else -> {
                     b.tvStatus.text = "PENDING"
                     b.tvStatus.setTextColor(ContextCompat.getColor(b.root.context, R.color.danger))
                     b.tvStatus.background = ContextCompat.getDrawable(b.root.context, R.drawable.bg_pill_danger)
-                    // Balance in red
                     b.tvOutstanding.setTextColor(ContextCompat.getColor(b.root.context, R.color.danger))
                 }
             }
