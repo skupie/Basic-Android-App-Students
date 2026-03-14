@@ -43,17 +43,16 @@ class RoutinesViewModel @Inject constructor(private val repository: RoutineRepos
     private val _routines = MutableStateFlow<Resource<RoutinesResponse>>(Resource.Loading)
     val routines: StateFlow<Resource<RoutinesResponse>> = _routines
 
-    var selectedDate: String? = null
+    // The date string last requested — kept so swipe-to-refresh reloads the same date
+    var lastRequestedDate: String = LocalDate.now()
+        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+        private set
 
-    init {
-        // Pass today's date explicitly — null lets the server return the whole week
-        val todayStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-        loadRoutines(todayStr)
-    }
+    init { loadRoutines(lastRequestedDate) }
 
-    fun loadRoutines(date: String? = selectedDate) {
+    fun loadRoutines(date: String) {
+        lastRequestedDate = date
         viewModelScope.launch {
-            selectedDate = date
             _routines.value = Resource.Loading
             _routines.value = repository.getRoutines(date)
         }
@@ -63,23 +62,23 @@ class RoutinesViewModel @Inject constructor(private val repository: RoutineRepos
 // ─── Adapter ─────────────────────────────────────────────────────────────────
 
 private fun subjectAccentBg(subject: String): Int = when {
-    subject.contains("math", true)      -> R.drawable.bg_card_brand
-    subject.contains("physics", true)   -> R.drawable.bg_card_brand
-    subject.contains("english", true)   -> R.drawable.bg_card_success
-    subject.contains("biology", true)   -> R.drawable.bg_card_success
-    subject.contains("chemistry", true) -> R.drawable.bg_card_amber
+    subject.contains("math", true)       -> R.drawable.bg_card_brand
+    subject.contains("physics", true)    -> R.drawable.bg_card_brand
+    subject.contains("english", true)    -> R.drawable.bg_card_success
+    subject.contains("biology", true)    -> R.drawable.bg_card_success
+    subject.contains("chemistry", true)  -> R.drawable.bg_card_amber
     subject.contains("history", true)
-            || subject.contains("social", true) -> R.drawable.bg_card_warning
+        || subject.contains("social", true) -> R.drawable.bg_card_warning
     else -> R.drawable.bg_card_dark
 }
 
 private fun subjectAccentColor(subject: String): Int = when {
-    subject.contains("math", true)      -> R.color.brand_light
-    subject.contains("physics", true)   -> R.color.brand_light
-    subject.contains("english", true)   -> R.color.success
-    subject.contains("biology", true)   -> R.color.success
-    subject.contains("chemistry", true) -> R.color.grade_average
-    else                                -> R.color.brand_light
+    subject.contains("math", true)       -> R.color.brand_light
+    subject.contains("physics", true)    -> R.color.brand_light
+    subject.contains("english", true)    -> R.color.success
+    subject.contains("biology", true)    -> R.color.success
+    subject.contains("chemistry", true)  -> R.color.grade_average
+    else                                 -> R.color.brand_light
 }
 
 class RoutineAdapter : ListAdapter<Routine, RoutineAdapter.VH>(DiffCb()) {
@@ -93,7 +92,7 @@ class RoutineAdapter : ListAdapter<Routine, RoutineAdapter.VH>(DiffCb()) {
             b.tvTimeSlot.text = parts.firstOrNull()?.trim() ?: item.timeSlot
             b.tvTimeLabel.text = item.timeSlot
 
-            val accentBg = subjectAccentBg(item.subject)
+            val accentBg    = subjectAccentBg(item.subject)
             val accentColor = ContextCompat.getColor(ctx, subjectAccentColor(item.subject))
             b.cardRoutine.background = ContextCompat.getDrawable(ctx, accentBg)
             b.viewAccentLine.setBackgroundColor(accentColor)
@@ -123,9 +122,15 @@ class RoutinesFragment : Fragment() {
     private val viewModel: RoutinesViewModel by viewModels()
     private val adapter = RoutineAdapter()
 
-    // Date navigation — populated from API's available_dates list
-    private var availableDates: List<String> = emptyList()
-    private var currentIndex: Int = -1
+    private val dateFmt = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+
+    /**
+     * Single source of truth for which date is displayed.
+     * This is updated IMMEDIATELY when an arrow is pressed — the header changes
+     * right away, without waiting for the API response to come back.
+     * We never read the date back from the API response (server echoes are unreliable).
+     */
+    private var displayedDate: LocalDate = LocalDate.now()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -140,27 +145,32 @@ class RoutinesFragment : Fragment() {
         binding.recyclerRoutines.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerRoutines.adapter = adapter
 
-        // Refresh current date's classes
+        // Show correct header immediately — don't wait for API
+        updateDateHeader()
+
+        // Swipe refresh reloads whatever date is currently displayed
         binding.swipeRefresh.setOnRefreshListener {
-            viewModel.loadRoutines(availableDates.getOrNull(currentIndex))
+            viewModel.loadRoutines(displayedDate.format(dateFmt))
         }
 
-        // ── Arrow navigation ─────────────────────────────────────────────────
+        // ── Prev: always step exactly 1 calendar day backward ────────────────
         binding.btnPrevDay.setOnClickListener {
-            if (currentIndex > 0) {
-                currentIndex--
-                viewModel.loadRoutines(availableDates[currentIndex])
-            }
+            displayedDate = displayedDate.minusDays(1)
+            updateDateHeader()                              // immediate header update
+            viewModel.loadRoutines(displayedDate.format(dateFmt))
         }
 
+        // ── Next: step 1 calendar day forward, but never past today ──────────
         binding.btnNextDay.setOnClickListener {
-            if (currentIndex < availableDates.size - 1) {
-                currentIndex++
-                viewModel.loadRoutines(availableDates[currentIndex])
+            val next = displayedDate.plusDays(1)
+            if (!next.isAfter(LocalDate.now())) {
+                displayedDate = next
+                updateDateHeader()                          // immediate header update
+                viewModel.loadRoutines(displayedDate.format(dateFmt))
             }
         }
 
-        // ── Collect ──────────────────────────────────────────────────────────
+        // ── Collect API results ───────────────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.routines.collect { state ->
                 when (state) {
@@ -168,46 +178,23 @@ class RoutinesFragment : Fragment() {
 
                     is Resource.Success -> {
                         binding.swipeRefresh.isRefreshing = false
-                        val data = state.data
 
-                        // On first successful load, build the dates list and pin to today
-                        if (availableDates.isEmpty() && !data.availableDates.isNullOrEmpty()) {
-                            availableDates = data.availableDates
-
-                            val todayStr = LocalDate.now()
-                                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-                            currentIndex = availableDates.indexOf(todayStr)
-                            if (currentIndex < 0) currentIndex = availableDates.size - 1
+                        val count = state.data.data.size
+                        binding.tvClassCount.text = when (count) {
+                            0    -> "No classes scheduled"
+                            1    -> "1 class"
+                            else -> "$count classes"
                         }
 
-                        // Header: ALWAYS use the date we explicitly requested.
-                        // data.currentDate from the server echoes today's date regardless
-                        // of what date was passed, so we never use it for the header.
-                        val displayDate = viewModel.selectedDate
-                            ?: availableDates.getOrNull(currentIndex)
-                            ?: data.currentDate
-                        binding.tvCurrentDate.text = formatDateLabel(displayDate)
+                        adapter.submitList(state.data.data)
 
-                        val count = data.data.size
-                        binding.tvClassCount.text = when {
-                            count == 0 -> "No classes today"
-                            count == 1 -> "1 class today"
-                            else -> "$count classes today"
-                        }
-
-                        // Dim arrows at boundaries
-                        binding.btnPrevDay.alpha = if (currentIndex > 0) 1f else 0.3f
-                        binding.btnNextDay.alpha =
-                            if (currentIndex < availableDates.size - 1) 1f else 0.3f
-
-                        adapter.submitList(data.data)
-
-                        if (data.data.isEmpty()) binding.tvEmpty.visible()
+                        if (state.data.data.isEmpty()) binding.tvEmpty.visible()
                         else binding.tvEmpty.gone()
                     }
 
                     is Resource.Error -> {
                         binding.swipeRefresh.isRefreshing = false
+                        binding.tvClassCount.text = ""
                         binding.tvEmpty.text = state.message
                         binding.tvEmpty.visible()
                     }
@@ -216,17 +203,28 @@ class RoutinesFragment : Fragment() {
         }
     }
 
-    /** "2026-03-14" → "Saturday, 14 March 2026" */
-    private fun formatDateLabel(dateStr: String?): String {
-        if (dateStr.isNullOrBlank()) return "Today"
-        return try {
-            val d = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-            val day   = d.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.ENGLISH)
-            val month = d.month.getDisplayName(TextStyle.FULL, Locale.ENGLISH)
-            "$day, ${d.dayOfMonth} $month ${d.year}"
-        } catch (e: Exception) {
-            dateStr
-        }
+    /**
+     * Refreshes the date header label and arrow enabled/alpha state
+     * from [displayedDate]. Called immediately on each arrow click.
+     */
+    private fun updateDateHeader() {
+        binding.tvCurrentDate.text = formatDate(displayedDate)
+
+        // Next arrow dimmed/disabled when already at today
+        val atToday = !displayedDate.isBefore(LocalDate.now())
+        binding.btnNextDay.alpha     = if (atToday) 0.3f else 1f
+        binding.btnNextDay.isEnabled = !atToday
+
+        // Prev arrow always available
+        binding.btnPrevDay.alpha     = 1f
+        binding.btnPrevDay.isEnabled = true
+    }
+
+    /** LocalDate → "Saturday, 14 March 2026" */
+    private fun formatDate(date: LocalDate): String {
+        val day   = date.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.ENGLISH)
+        val month = date.month.getDisplayName(TextStyle.FULL, Locale.ENGLISH)
+        return "$day, ${date.dayOfMonth} $month ${date.year}"
     }
 
     override fun onDestroyView() {
