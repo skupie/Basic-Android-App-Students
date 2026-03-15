@@ -1,27 +1,105 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    app:cardCornerRadius="20dp"
-    app:cardElevation="0dp"
-    app:cardBackgroundColor="#FFFFFF"
-    android:clipChildren="true">
+    android:orientation="vertical"
+    android:background="@drawable/bg_dialog_modal"
+    android:padding="0dp"
+    android:clipToPadding="false">
 
+    <!-- ── Top accent bar ── -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:background="@drawable/bg_hero_danger"
+        android:layout_marginBottom="0dp"/>
+
+    <!-- ── Content ── -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="24dp">
 
-        <!-- ── Gradient header ── -->
+        <!-- Icon + title row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:background="@drawable/bg_hero_danger"
-            android:padding="20dp">
+            android:layout_marginBottom="20dp">
+
+            <!-- Red circle icon -->
+            <FrameLayout
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:background="@drawable/bg_due_icon_circle"
+                android:layout_marginEnd="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="!"
+                    android:textColor="#EF4444"
+                    android:textSize="26sp"
+                    android:textStyle="bold"/>
+            </FrameLayout>
+
+            <!-- Title col -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="PAYMENT DUE"
+                    android:textColor="#EF4444"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.12"
+                    android:layout_marginBottom="4dp"/>
+
+                <TextView
+                    android:id="@+id/tvDialogTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Fee Payment Overdue"
+                    android:textColor="#F3F4F6"
+                    android:textSize="18sp"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#1A2236"
+            android:layout_marginBottom="20dp"/>
+
+        <!-- Message body -->
+        <TextView
+            android:id="@+id/tvDialogBody"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#9CA3AF"
+            android:textSize="14sp"
+            android:lineSpacingMultiplier="1.6"
+            android:layout_marginBottom="20dp"/>
+
+        <!-- Amount card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_card_danger"
+            android:padding="16dp"
+            android:layout_marginBottom="24dp">
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -32,104 +110,41 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="বকেয়া ফি সতর্কতা"
-                    android:textColor="#FFEEEE"
+                    android:text="মোট বকেয়া"
+                    android:textColor="#FCA5A5"
                     android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.04"
-                    android:layout_marginBottom="4dp"/>
-
-                <TextView
-                    android:id="@+id/tvDialogTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="ফি পরিশোধ বাকি আছে"
-                    android:textColor="@color/white"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
+                    android:letterSpacing="0.05"
                     android:layout_marginBottom="4dp"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="অনুগ্রহ করে পড়ুন এবং ব্যবস্থা নিন।"
-                    android:textColor="#CCFFFFFF"
-                    android:textSize="13sp"/>
+                    android:text="Total Due Amount"
+                    android:textColor="#9CA3AF"
+                    android:textSize="12sp"/>
             </LinearLayout>
-
-            <!-- DUE badge -->
-            <LinearLayout
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:gravity="center"
-                android:background="@color/white"
-                android:layout_marginStart="12dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="বকেয়া"
-                    android:textColor="@color/danger"
-                    android:textSize="11sp"
-                    android:textStyle="bold"/>
-            </LinearLayout>
-        </LinearLayout>
-
-        <!-- ── Body ── -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="#FFF8F8"
-            android:padding="20dp">
 
             <TextView
-                android:id="@+id/tvDialogBody"
-                android:layout_width="match_parent"
+                android:id="@+id/tvDialogAmount"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#333333"
-                android:textSize="14sp"
-                android:lineSpacingMultiplier="1.6"
-                android:layout_marginBottom="20dp"/>
-
-            <!-- Amount row -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="20dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="মোট বকেয়া"
-                    android:textColor="#666666"
-                    android:textSize="13sp"/>
-
-                <TextView
-                    android:id="@+id/tvDialogAmount"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/danger"
-                    android:textSize="18sp"
-                    android:textStyle="bold"/>
-            </LinearLayout>
-
-            <!-- OK button -->
-            <Button
-                android:id="@+id/btnDialogOk"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:background="@drawable/bg_btn_primary"
-                android:text="ঠিক আছে"
-                android:textColor="@color/white"
-                android:textSize="15sp"
-                android:textStyle="bold"
-                android:stateListAnimator="@null"/>
+                android:textColor="#EF4444"
+                android:textSize="22sp"
+                android:textStyle="bold"/>
         </LinearLayout>
 
-    </LinearLayout>
+        <!-- OK button -->
+        <Button
+            android:id="@+id/btnDialogOk"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:background="@drawable/bg_btn_danger"
+            android:text="ঠিক আছে"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.03"
+            android:stateListAnimator="@null"/>
 
-</com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+</LinearLayout>
