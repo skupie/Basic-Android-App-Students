@@ -20,18 +20,16 @@
         android:fillColor="#22000000"
         android:pathData="M4,14H14V16H4Z"/>
 
-    <!-- Chip -->
-    <rect
+    <!-- Chip (rect drawn as path) -->
+    <path
         android:fillColor="#FFCC00"
-        android:left="4"
-        android:top="5.5"
-        android:right="8"
-        android:bottom="8.5"/>
+        android:pathData="M4,5.5H8V8.5H4Z"/>
 
-    <!-- Taka symbol on chip -->
+    <!-- Chip inner line -->
     <path
         android:fillColor="#886600"
-        android:strokeWidth="0.6"
-        android:pathData="M5.5,6.5 L6.5,6.5 M5.2,7.2 L6.8,7.2 M5.8,6.5 L5.6,8"/>
+        android:strokeColor="#886600"
+        android:strokeWidth="0.5"
+        android:pathData="M5,6.5H7M5,7.5H7"/>
 
 </vector>
