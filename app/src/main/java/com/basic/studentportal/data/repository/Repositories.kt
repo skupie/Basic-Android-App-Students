@@ -7,6 +7,9 @@ import com.basic.studentportal.utils.Resource
 import com.basic.studentportal.utils.parseError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.net.UnknownHostException
+import java.net.SocketTimeoutException
+import java.net.ConnectException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -23,8 +26,14 @@ private suspend fun <T> safeApiCall(call: suspend () -> retrofit2.Response<T>): 
             } else {
                 Resource.Error(response.parseError(), response.code())
             }
+        } catch (e: UnknownHostException) {
+            Resource.Error("ইন্টারনেট সংযোগ নেই। অনুগ্রহ করে নেটওয়ার্ক চেক করুন।")
+        } catch (e: SocketTimeoutException) {
+            Resource.Error("সার্ভার সাড়া দিচ্ছে না। পরে আবার চেষ্টা করুন।")
+        } catch (e: ConnectException) {
+            Resource.Error("সার্ভারের সাথে সংযোগ করা যাচ্ছে না। পরে আবার চেষ্টা করুন।")
         } catch (e: Exception) {
-            Resource.Error(e.localizedMessage ?: "Network error. Check your connection.")
+            Resource.Error("নেটওয়ার্ক সমস্যা। অনুগ্রহ করে আবার চেষ্টা করুন।")
         }
     }
 }
@@ -40,10 +49,10 @@ class AuthRepository @Inject constructor(
         val result = safeApiCall { api.login(LoginRequest(email, password)) }
         if (result is Resource.Success) {
             tokenDataStore.saveAuthData(
-                token = result.data.token,
-                name = result.data.user.name,
-                email = result.data.user.email,
-                role = result.data.user.role,
+                token    = result.data.token,
+                name     = result.data.user.name,
+                email    = result.data.user.email,
+                role     = result.data.user.role,
                 photoUrl = result.data.user.profilePhotoUrl
             )
         }
@@ -57,7 +66,6 @@ class AuthRepository @Inject constructor(
     }
 
     suspend fun getMe(): Resource<AuthUser> = safeApiCall { api.getMe() }
-    // Add these methods inside AuthRepository class:
 
     suspend fun updateEmail(newEmail: String, currentPassword: String): Resource<String> {
         val result = safeApiCall {
@@ -74,8 +82,8 @@ class AuthRepository @Inject constructor(
         val result = safeApiCall {
             api.updatePassword(
                 UpdatePasswordRequest(
-                    currentPassword = currentPassword,
-                    password = newPassword,
+                    currentPassword      = currentPassword,
+                    password             = newPassword,
                     passwordConfirmation = newPassword
                 )
             )
