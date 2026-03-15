@@ -1,11 +1,15 @@
 package com.basic.studentportal.ui.dashboard
 
 import android.app.Dialog
+import android.os.Build
 import android.os.Bundle
+import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -14,6 +18,7 @@ import androidx.navigation.fragment.findNavController
 import com.basic.studentportal.R
 import com.basic.studentportal.data.model.DashboardResponse
 import com.basic.studentportal.data.model.Routine
+import com.basic.studentportal.data.model.StudentNotice
 import com.basic.studentportal.databinding.FragmentDashboardBinding
 import com.basic.studentportal.utils.Resource
 import com.basic.studentportal.utils.animatePercent
@@ -117,13 +122,6 @@ class DashboardFragment : Fragment() {
                 showDueAlertDialog(alertData.dueMonthCount, alertData.totalDue)
             }
         }
-
-        // ── Notice alert dialog ───────────────────────────────────────────────
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.showNoticeAlert.collect { noticeData ->
-                showNoticeAlertDialog(noticeData)
-            }
-        }
     }
 
     private fun showLoading(loading: Boolean) {
@@ -215,8 +213,11 @@ class DashboardFragment : Fragment() {
             binding.tvNoteTeacher.text = notes.latestNoteTeacherName?.let { "by $it" } ?: ""
         }
 
-        // Inline notice card is no longer used — notices are shown as a popup dialog
+        // ── Pending Notice — shown as scrollable dialog ───────────────────────
         binding.cardNotice.gone()
+        data.pendingNotice?.let { notice ->
+            if (!notice.isAcknowledged) showNoticeDialog(notice)
+        }
     }
 
     // ── Bengali digit helper ──────────────────────────────────────────────────
@@ -225,6 +226,12 @@ class DashboardFragment : Fragment() {
         val d = charArrayOf('০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯')
         return number.toString().map { ch -> if (ch.isDigit()) d[ch.digitToInt()] else ch }.joinToString("")
     }
+
+    private fun fromHtml(html: String): CharSequence =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+            Html.fromHtml(html, Html.FROM_HTML_MODE_COMPACT)
+        else
+            @Suppress("DEPRECATION") Html.fromHtml(html)
 
     // ── Due Alert Dialog ──────────────────────────────────────────────────────
 
@@ -240,7 +247,7 @@ class DashboardFragment : Fragment() {
             setBackgroundDrawableResource(android.R.color.transparent)
             setLayout(
                 (resources.displayMetrics.widthPixels * 0.92).toInt(),
-                android.view.WindowManager.LayoutParams.WRAP_CONTENT
+                (resources.displayMetrics.heightPixels * 0.85).toInt()
             )
         }
 
@@ -249,7 +256,7 @@ class DashboardFragment : Fragment() {
 
         dialogView.findViewById<TextView>(R.id.tvDialogBody).text = bodyText
         dialogView.findViewById<TextView>(R.id.tvDialogAmount).text = totalDue.toCurrency()
-        dialogView.findViewById<android.widget.Button>(R.id.btnDialogOk).setOnClickListener {
+        dialogView.findViewById<Button>(R.id.btnDialogOk).setOnClickListener {
             viewModel.dismissDueAlert(dueMonthCount)
             dialog.dismiss()
         }
@@ -257,29 +264,115 @@ class DashboardFragment : Fragment() {
         dialog.show()
     }
 
-    // ── Notice Alert Dialog ───────────────────────────────────────────────────
+    // ── Pending Notice Dialog ─────────────────────────────────────────────────
 
-    private fun showNoticeAlertDialog(noticeData: DashboardViewModel.NoticeAlertData) {
+    private fun showNoticeDialog(notice: StudentNotice) {
         val dialog = Dialog(requireContext())
         dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
-        dialog.setCancelable(false)
+        dialog.setCancelable(true)
 
-        val dialogView = layoutInflater.inflate(R.layout.dialog_due_alert, null)
-        dialog.setContentView(dialogView)
+        // Outer card container
+        val container = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundResource(R.drawable.bg_dialog_due_card)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT
+            )
+        }
+
+        // Header
+        val header = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+            setPadding(dpToPx(20), dpToPx(18), dpToPx(16), dpToPx(18))
+            setBackgroundColor(resources.getColor(R.color.brand_primary, null))
+        }
+        header.addView(TextView(requireContext()).apply {
+            text = "📢  নোটিশ"
+            textSize = 15f
+            setTextColor(resources.getColor(android.R.color.white, null))
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+            layoutParams = LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f
+            )
+        })
+
+        // Scrollable body
+        val scrollView = ScrollView(requireContext()).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f
+            )
+            isVerticalScrollBarEnabled = true
+        }
+
+        val body = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dpToPx(20), dpToPx(20), dpToPx(20), dpToPx(12))
+        }
+
+        // Title
+        body.addView(TextView(requireContext()).apply {
+            text = notice.title
+            textSize = 16f
+            setTextColor(resources.getColor(R.color.text_primary, null))
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).also { it.bottomMargin = dpToPx(12) }
+        })
+
+        // Body — HTML rendered
+        body.addView(TextView(requireContext()).apply {
+            text = fromHtml(notice.body)
+            textSize = 14f
+            setTextColor(resources.getColor(R.color.text_secondary, null))
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).also { it.bottomMargin = dpToPx(12) }
+        })
+
+        // Date
+        body.addView(TextView(requireContext()).apply {
+            text = "📅 ${notice.noticeDate}"
+            textSize = 11f
+            setTextColor(resources.getColor(R.color.text_hint, null))
+        })
+
+        scrollView.addView(body)
+
+        // Footer with button — always visible
+        val footer = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dpToPx(20), dpToPx(12), dpToPx(20), dpToPx(20))
+        }
+
+        footer.addView(Button(requireContext()).apply {
+            text = "✓  বুঝেছি"
+            setBackgroundResource(R.drawable.bg_btn_primary)
+            setTextColor(resources.getColor(android.R.color.white, null))
+            textSize = 14f
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, dpToPx(48)
+            )
+            setOnClickListener { dialog.dismiss() }
+        })
+
+        container.addView(header)
+        container.addView(scrollView)
+        container.addView(footer)
+
+        dialog.setContentView(container)
 
         dialog.window?.apply {
             setBackgroundDrawableResource(android.R.color.transparent)
             setLayout(
                 (resources.displayMetrics.widthPixels * 0.92).toInt(),
-                android.view.WindowManager.LayoutParams.WRAP_CONTENT
+                (resources.displayMetrics.heightPixels * 0.80).toInt()
             )
-        }
-
-        dialogView.findViewById<TextView>(R.id.tvDialogBody).text = noticeData.body
-        dialogView.findViewById<TextView>(R.id.tvDialogAmount).text = noticeData.title
-        dialogView.findViewById<android.widget.Button>(R.id.btnDialogOk).setOnClickListener {
-            viewModel.acknowledgeNotice(noticeData.id)
-            dialog.dismiss()
         }
 
         dialog.show()
