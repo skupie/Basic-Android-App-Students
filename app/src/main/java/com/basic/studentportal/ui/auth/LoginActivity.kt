@@ -28,15 +28,12 @@ class LoginActivity : AppCompatActivity() {
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Already logged in?
         lifecycleScope.launch {
             viewModel.isLoggedIn.collect { isLoggedIn ->
                 if (isLoggedIn) navigateToMain()
             }
         }
 
-        // Observe login state once here in onCreate — not in onStart —
-        // so stale errors from a previous attempt don't re-fire as toasts.
         lifecycleScope.launch {
             viewModel.loginState.collect { state ->
                 when (state) {
@@ -61,7 +58,6 @@ class LoginActivity : AppCompatActivity() {
             }
         }
 
-        // ── Login method tabs ─────────────────────────────────────────────────
         selectLoginTab(email = true)
 
         binding.tabEmail.setOnClickListener {
@@ -80,7 +76,6 @@ class LoginActivity : AppCompatActivity() {
         val activeTxt   = ContextCompat.getColor(this, R.color.text_primary)
         val inactiveTxt = ContextCompat.getColor(this, R.color.text_hint)
 
-        // Clear all errors when switching tabs
         binding.tilEmail.error = null
         binding.tilMobile.error = null
         binding.tilPassword.error = null
@@ -114,7 +109,6 @@ class LoginActivity : AppCompatActivity() {
         }
         val password = binding.etPassword.text.toString().trim()
 
-        // Clear previous errors
         binding.tilEmail.error = null
         binding.tilMobile.error = null
         binding.tilPassword.error = null
@@ -137,7 +131,7 @@ class LoginActivity : AppCompatActivity() {
             return
         }
 
-        viewModel.login(identifier, password)
+        viewModel.login(identifier, password, isMobile = !isEmailMode)
     }
 
     private fun navigateToMain() {
