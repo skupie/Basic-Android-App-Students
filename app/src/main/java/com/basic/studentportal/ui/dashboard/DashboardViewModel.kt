@@ -33,11 +33,6 @@ class DashboardViewModel @Inject constructor(
     private val _unreadNoticeCount = MutableStateFlow(0)
     val unreadNoticeCount: StateFlow<Int> = _unreadNoticeCount
 
-    /**
-     * Emits once whenever a due alert should be shown.
-     * Using SharedFlow (not StateFlow) so it fires exactly once per trigger,
-     * not on every collector re-subscription.
-     */
     private val _showDueAlert = MutableSharedFlow<DueAlertData>(extraBufferCapacity = 1)
     val showDueAlert: SharedFlow<DueAlertData> = _showDueAlert.asSharedFlow()
 
@@ -62,12 +57,12 @@ class DashboardViewModel @Inject constructor(
                 val notice = data.pendingNotice
                 _unreadNoticeCount.value = if (notice != null && !notice.isAcknowledged) 1 else 0
 
-                // Due alert — only emit if user hasn't already dismissed this exact count
-                val due       = data.dueSummary
-                val monthly   = data.student?.monthlyFee ?: 0.0
+                // Due alert — always show whenever server sends one
+                val due     = data.dueSummary
+                val monthly = data.student?.monthlyFee ?: 0.0
                 if (due != null && due.dueMonthCount > 0) {
                     val totalDue = due.dueMonthCount * monthly
-                    if (totalDue > 0 && !tokenDataStore.isDueAlertDismissed(due.dueMonthCount)) {
+                    if (totalDue > 0) {
                         _showDueAlert.emit(
                             DueAlertData(due.dueMonthCount, totalDue, due.dueAlertMessage)
                         )
@@ -81,10 +76,8 @@ class DashboardViewModel @Inject constructor(
         }
     }
 
-    /** Called when user taps "ঠিক আছে" — persists dismissal and notifies server. */
     fun dismissDueAlert(dueMonthCount: Int) {
         viewModelScope.launch {
-            tokenDataStore.saveDueAlertDismissed(dueMonthCount)
             repository.dismissDueAlert()
         }
     }
