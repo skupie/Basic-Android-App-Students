@@ -126,6 +126,7 @@ class DashboardFragment : Fragment() {
         binding.scrollContent.visible()
         binding.tvError.gone()
 
+        // ── Student Info ──────────────────────────────────────────────────────
         data.student?.let { student ->
             binding.tvHeaderName.text = student.name
             binding.tvStudentName.text = buildString {
@@ -154,6 +155,7 @@ class DashboardFragment : Fragment() {
             )
         }
 
+        // ── Hero card stats ───────────────────────────────────────────────────
         data.weeklyExamSummary?.let { exam ->
             binding.tvAvgScore.animatePercent(to = exam.averagePercent)
         }
@@ -164,6 +166,7 @@ class DashboardFragment : Fragment() {
             binding.tvDueFees.text = if (calculatedDue > 0) calculatedDue.toCurrency() else "0 ৳"
         }
 
+        // ── Due Alert popup ───────────────────────────────────────────────────
         data.dueSummary?.let { due ->
             val monthlyFee    = data.student?.monthlyFee ?: 0.0
             val calculatedDue = due.dueMonthCount * monthlyFee
@@ -173,6 +176,7 @@ class DashboardFragment : Fragment() {
         }
         binding.cardDueAlert.gone()
 
+        // ── Today's Classes ───────────────────────────────────────────────────
         binding.tvRoutineDate.text = if (!data.routineDate.isNullOrBlank())
             "TODAY'S CLASSES · ${data.routineDate}"
         else "TODAY'S CLASSES"
@@ -186,6 +190,7 @@ class DashboardFragment : Fragment() {
             buildRoutineRows(data.todayRoutines)
         }
 
+        // ── Exam Performance ──────────────────────────────────────────────────
         data.weeklyExamSummary?.let { exam ->
             binding.tvExamCount.text = exam.examCount.toString()
             binding.tvAvgPercent.text = exam.averagePercent.toPercent()
@@ -204,12 +209,14 @@ class DashboardFragment : Fragment() {
             } ?: binding.tvTrendDelta.gone()
         }
 
+        // ── Study Materials ───────────────────────────────────────────────────
         data.notesSummary?.let { notes ->
             binding.tvNoteCount.text = "${notes.noteCount} materials"
             binding.tvLatestNote.text = notes.latestNoteTitle ?: "No materials yet"
             binding.tvNoteTeacher.text = notes.latestNoteTeacherName?.let { "by $it" } ?: ""
         }
 
+        // ── Pending Notice ────────────────────────────────────────────────────
         data.pendingNotice?.let { notice ->
             binding.cardNotice.visible()
             binding.tvNoticeTitle.text = notice.title
@@ -220,7 +227,7 @@ class DashboardFragment : Fragment() {
         } ?: binding.cardNotice.gone()
     }
 
-    // ── Bengali number helpers ────────────────────────────────────────────────
+    // ── Bengali digit helpers ─────────────────────────────────────────────────
 
     private fun toBengaliDigits(number: Long): String {
         val bengaliDigits = charArrayOf('০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯')
@@ -230,9 +237,7 @@ class DashboardFragment : Fragment() {
     }
 
     private fun toBengaliAmount(amount: Double): String {
-        // Format as whole number (no decimals) with Bengali digits
-        val rounded = Math.round(amount)
-        return toBengaliDigits(rounded)
+        return toBengaliDigits(Math.round(amount))
     }
 
     // ── Due Alert Dialog ──────────────────────────────────────────────────────
