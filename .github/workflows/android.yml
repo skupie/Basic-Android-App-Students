@@ -42,30 +42,8 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/libs.versions.toml') }}
           restore-keys: ${{ runner.os }}-gradle-
 
-      - name: Decode keystore
-        if: github.event_name != 'pull_request'
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > app/release.keystore
-
       - name: Build debug APK
         run: ./gradlew assembleDebug --no-daemon --stacktrace
-
-      - name: Build release APK
-        if: github.event_name != 'pull_request'
-        run: ./gradlew assembleRelease --no-daemon --stacktrace
-        env:
-          SIGNING_STORE_FILE: ${{ github.workspace }}/app/release.keystore
-          SIGNING_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-          SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-
-      - name: Build release AAB
-        if: github.event_name != 'pull_request'
-        run: ./gradlew bundleRelease --no-daemon --stacktrace
-        env:
-          SIGNING_STORE_FILE: ${{ github.workspace }}/app/release.keystore
-          SIGNING_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-          SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
@@ -73,19 +51,3 @@ jobs:
           name: StudentPortal-debug-${{ github.run_number }}
           path: app/build/outputs/apk/debug/*.apk
           retention-days: 7
-
-      - name: Upload release APK
-        if: github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4
-        with:
-          name: StudentPortal-release-${{ github.run_number }}
-          path: app/build/outputs/apk/release/*.apk
-          retention-days: 30
-
-      - name: Upload release AAB
-        if: github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4
-        with:
-          name: StudentPortal-release-aab-${{ github.run_number }}
-          path: app/build/outputs/bundle/release/*.aab
-          retention-days: 30
