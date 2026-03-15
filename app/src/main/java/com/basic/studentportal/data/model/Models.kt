@@ -5,7 +5,8 @@ import com.google.gson.annotations.SerializedName
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
 data class LoginRequest(
-    @SerializedName("email") val email: String,
+    @SerializedName("email") val email: String? = null,
+    @SerializedName("mobile") val mobile: String? = null,
     @SerializedName("password") val password: String,
     @SerializedName("device_name") val deviceName: String = "Android App"
 )
