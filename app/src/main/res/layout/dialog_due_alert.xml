@@ -3,134 +3,112 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/bg_dialog_modal"
-    android:padding="0dp"
-    android:clipToPadding="false">
+    android:background="@drawable/bg_dialog_due_card">
 
-    <!-- ── Top accent bar ── -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="3dp"
-        android:background="@drawable/bg_hero_danger"
-        android:layout_marginBottom="0dp"/>
-
-    <!-- ── Content ── -->
+    <!-- ── Dramatic red header ── -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:gravity="center"
+        android:background="@drawable/bg_dialog_due_header"
+        android:paddingTop="28dp"
+        android:paddingBottom="24dp"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp">
 
-        <!-- Icon + title row -->
+        <!-- Warning icon circle -->
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="20dp">
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:gravity="center"
+            android:background="@drawable/ic_circle"
+            android:backgroundTint="#EF4444"
+            android:layout_marginBottom="14dp">
 
-            <!-- Red circle icon -->
-            <FrameLayout
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:background="@drawable/bg_due_icon_circle"
-                android:layout_marginEnd="16dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="!"
-                    android:textColor="#EF4444"
-                    android:textSize="26sp"
-                    android:textStyle="bold"/>
-            </FrameLayout>
-
-            <!-- Title col -->
-            <LinearLayout
-                android:layout_width="0dp"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="PAYMENT DUE"
-                    android:textColor="#EF4444"
-                    android:textSize="10sp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.12"
-                    android:layout_marginBottom="4dp"/>
-
-                <TextView
-                    android:id="@+id/tvDialogTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Fee Payment Overdue"
-                    android:textColor="#F3F4F6"
-                    android:textSize="18sp"
-                    android:textStyle="bold"/>
-            </LinearLayout>
+                android:text="⚠"
+                android:textSize="28sp"/>
         </LinearLayout>
 
-        <!-- Divider -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#1A2236"
-            android:layout_marginBottom="20dp"/>
+        <!-- Label -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⚡ জরুরি বিজ্ঞপ্তি"
+            android:textColor="#FFCCCC"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.12"
+            android:layout_marginBottom="6dp"/>
 
-        <!-- Message body -->
+        <!-- Title -->
+        <TextView
+            android:id="@+id/tvDialogTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="বকেয়া নোটিশ"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:gravity="center"/>
+
+    </LinearLayout>
+
+    <!-- ── Divider line ── -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#3D0000"/>
+
+    <!-- ── Body ── -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="22dp">
+
+        <!-- Body text -->
         <TextView
             android:id="@+id/tvDialogBody"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#9CA3AF"
-            android:textSize="14sp"
-            android:lineSpacingMultiplier="1.6"
+            android:textColor="#F3F4F6"
+            android:textSize="15sp"
+            android:lineSpacingMultiplier="1.7"
+            android:gravity="center"
             android:layout_marginBottom="20dp"/>
 
-        <!-- Amount card -->
+        <!-- Amount highlight box -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:background="@drawable/bg_card_danger"
+            android:orientation="vertical"
+            android:background="@drawable/bg_amount_box_due"
             android:padding="16dp"
-            android:layout_marginBottom="24dp">
+            android:gravity="center"
+            android:layout_marginBottom="22dp">
 
-            <LinearLayout
-                android:layout_width="0dp"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="মোট বকেয়া"
-                    android:textColor="#FCA5A5"
-                    android:textSize="11sp"
-                    android:letterSpacing="0.05"
-                    android:layout_marginBottom="4dp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Total Due Amount"
-                    android:textColor="#9CA3AF"
-                    android:textSize="12sp"/>
-            </LinearLayout>
+                android:text="মোট বকেয়া পরিমাণ"
+                android:textColor="#FCA5A5"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.06"
+                android:layout_marginBottom="6dp"/>
 
             <TextView
                 android:id="@+id/tvDialogAmount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="#EF4444"
-                android:textSize="22sp"
+                android:textSize="28sp"
                 android:textStyle="bold"/>
+
         </LinearLayout>
 
         <!-- OK button -->
@@ -138,13 +116,13 @@
             android:id="@+id/btnDialogOk"
             android:layout_width="match_parent"
             android:layout_height="52dp"
-            android:background="@drawable/bg_btn_danger"
-            android:text="ঠিক আছে"
-            android:textColor="@color/white"
+            android:background="@drawable/bg_btn_danger_solid"
+            android:text="✓  ঠিক আছে, বুঝেছি"
+            android:textColor="#FFFFFF"
             android:textSize="15sp"
             android:textStyle="bold"
-            android:letterSpacing="0.03"
             android:stateListAnimator="@null"/>
 
     </LinearLayout>
+
 </LinearLayout>
