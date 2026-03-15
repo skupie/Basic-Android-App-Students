@@ -45,7 +45,6 @@ class DashboardFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.tvGreeting.text = getGreeting()
-
         binding.swipeRefresh.setOnRefreshListener { viewModel.loadDashboard() }
 
         binding.btnNotification.setOnClickListener {
@@ -54,7 +53,6 @@ class DashboardFragment : Fragment() {
         binding.btnSettings.setOnClickListener {
             findNavController().navigate(R.id.settingsFragment)
         }
-
         binding.quickAttendance.setOnClickListener {
             findNavController().navigate(R.id.attendanceFragment)
         }
@@ -74,7 +72,6 @@ class DashboardFragment : Fragment() {
             findNavController().navigate(R.id.studyMaterialsFragment)
         }
 
-        // ── Dashboard data ────────────────────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.dashboard.collect { state ->
                 when (state) {
@@ -93,7 +90,6 @@ class DashboardFragment : Fragment() {
             }
         }
 
-        // ── Attendance percentage ─────────────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.attendanceSummary.collect { state ->
                 when (state) {
@@ -105,14 +101,10 @@ class DashboardFragment : Fragment() {
             }
         }
 
-        // ── Unread notice badge on bell icon ──────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.unreadNoticeCount.collect { count ->
-                if (count > 0) {
-                    binding.dotNotification.visible()
-                } else {
-                    binding.dotNotification.gone()
-                }
+                if (count > 0) binding.dotNotification.visible()
+                else binding.dotNotification.gone()
             }
         }
     }
@@ -126,7 +118,6 @@ class DashboardFragment : Fragment() {
         binding.scrollContent.visible()
         binding.tvError.gone()
 
-        // ── Student Info ──────────────────────────────────────────────────────
         data.student?.let { student ->
             binding.tvHeaderName.text = student.name
             binding.tvStudentName.text = buildString {
@@ -143,9 +134,9 @@ class DashboardFragment : Fragment() {
 
             if (!student.enrollmentDate.isNullOrBlank()) {
                 binding.tvEnrollmentDate.text = "📅 Admitted: ${student.enrollmentDate}"
-                binding.tvEnrollmentDate.visibility = android.view.View.VISIBLE
+                binding.tvEnrollmentDate.visibility = View.VISIBLE
             } else {
-                binding.tvEnrollmentDate.visibility = android.view.View.GONE
+                binding.tvEnrollmentDate.visibility = View.GONE
             }
 
             binding.chipStatus.text = "● ${student.status.uppercase()}"
@@ -155,7 +146,6 @@ class DashboardFragment : Fragment() {
             )
         }
 
-        // ── Hero card stats ───────────────────────────────────────────────────
         data.weeklyExamSummary?.let { exam ->
             binding.tvAvgScore.animatePercent(to = exam.averagePercent)
         }
@@ -164,19 +154,12 @@ class DashboardFragment : Fragment() {
             val monthlyFee = data.student?.monthlyFee ?: 0.0
             val calculatedDue = due.dueMonthCount * monthlyFee
             binding.tvDueFees.text = if (calculatedDue > 0) calculatedDue.toCurrency() else "0 ৳"
-        }
-
-        // ── Due Alert popup ───────────────────────────────────────────────────
-        data.dueSummary?.let { due ->
-            val monthlyFee    = data.student?.monthlyFee ?: 0.0
-            val calculatedDue = due.dueMonthCount * monthlyFee
             if (due.dueMonthCount > 0 && calculatedDue > 0) {
                 showDueAlertDialog(due.dueMonthCount, calculatedDue)
             }
         }
         binding.cardDueAlert.gone()
 
-        // ── Today's Classes ───────────────────────────────────────────────────
         binding.tvRoutineDate.text = if (!data.routineDate.isNullOrBlank())
             "TODAY'S CLASSES · ${data.routineDate}"
         else "TODAY'S CLASSES"
@@ -190,12 +173,10 @@ class DashboardFragment : Fragment() {
             buildRoutineRows(data.todayRoutines)
         }
 
-        // ── Exam Performance ──────────────────────────────────────────────────
         data.weeklyExamSummary?.let { exam ->
             binding.tvExamCount.text = exam.examCount.toString()
             binding.tvAvgPercent.text = exam.averagePercent.toPercent()
             binding.tvPerformanceLabel.text = exam.performanceLabel
-
             exam.trendDelta?.let { delta ->
                 val sign = if (delta >= 0) "▲" else "▼"
                 binding.tvTrendDelta.text = "$sign ${Math.abs(delta).toPercent()}"
@@ -209,14 +190,12 @@ class DashboardFragment : Fragment() {
             } ?: binding.tvTrendDelta.gone()
         }
 
-        // ── Study Materials ───────────────────────────────────────────────────
         data.notesSummary?.let { notes ->
             binding.tvNoteCount.text = "${notes.noteCount} materials"
             binding.tvLatestNote.text = notes.latestNoteTitle ?: "No materials yet"
             binding.tvNoteTeacher.text = notes.latestNoteTeacherName?.let { "by $it" } ?: ""
         }
 
-        // ── Pending Notice ────────────────────────────────────────────────────
         data.pendingNotice?.let { notice ->
             binding.cardNotice.visible()
             binding.tvNoticeTitle.text = notice.title
@@ -227,24 +206,13 @@ class DashboardFragment : Fragment() {
         } ?: binding.cardNotice.gone()
     }
 
-    // ── Bengali digit helpers ─────────────────────────────────────────────────
-
     private fun toBengaliDigits(number: Long): String {
-        val bengaliDigits = charArrayOf('০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯')
-        return number.toString().map { ch ->
-            if (ch.isDigit()) bengaliDigits[ch.digitToInt()] else ch
-        }.joinToString("")
+        val d = charArrayOf('০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯')
+        return number.toString().map { ch -> if (ch.isDigit()) d[ch.digitToInt()] else ch }.joinToString("")
     }
-
-    private fun toBengaliAmount(amount: Double): String {
-        return toBengaliDigits(Math.round(amount))
-    }
-
-    // ── Due Alert Dialog ──────────────────────────────────────────────────────
 
     private fun showDueAlertDialog(dueMonthCount: Int, totalDue: Double) {
-        val ctx = requireContext()
-        val dialog = Dialog(ctx)
+        val dialog = Dialog(requireContext())
         dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
         dialog.setCancelable(false)
 
@@ -259,15 +227,11 @@ class DashboardFragment : Fragment() {
             )
         }
 
-        val bengaliMonths = toBengaliDigits(dueMonthCount.toLong())
-        val bengaliAmount = toBengaliAmount(totalDue)
+        val bodyText = "প্রিয় শিক্ষার্থী, আপনার ${toBengaliDigits(dueMonthCount.toLong())} মাসের বকেয়া জমা হয়েছে " +
+                "${toBengaliDigits(Math.round(totalDue))} টাকা। অনুগ্রহ করে বকেয়াটি আগামী ২ কর্ম দিবসের মধ্যে পরিশোধ করুন।"
 
-        val bodyText = "প্রিয় শিক্ষার্থী, আপনার $bengaliMonths মাসের বকেয়া জমা হয়েছে $bengaliAmount টাকা। " +
-                       "অনুগ্রহ করে বকেয়াটি আগামী ২ কর্ম দিবসের মধ্যে পরিশোধ করুন।"
-
-        dialogView.findViewById<TextView>(R.id.tvDialogBody).text   = bodyText
+        dialogView.findViewById<TextView>(R.id.tvDialogBody).text = bodyText
         dialogView.findViewById<TextView>(R.id.tvDialogAmount).text = totalDue.toCurrency()
-
         dialogView.findViewById<android.widget.Button>(R.id.btnDialogOk).setOnClickListener {
             viewModel.dismissDueAlert()
             dialog.dismiss()
@@ -278,7 +242,6 @@ class DashboardFragment : Fragment() {
 
     private fun buildRoutineRows(routines: List<Routine>) {
         binding.containerRoutines.removeAllViews()
-
         routines.forEach { routine ->
             val rowCard = LinearLayout(requireContext()).apply {
                 orientation = LinearLayout.HORIZONTAL
