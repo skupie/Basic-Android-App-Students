@@ -33,9 +33,9 @@
 
         <activity
             android:name=".ui.auth.LoginActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize"
-            android:theme="@style/Theme.StudentPortal.Login"/>
+            android:windowSoftInputMode="adjustPan"
+            android:exported="false"/>
+           
 
         <activity
             android:name=".ui.main.MainActivity"
