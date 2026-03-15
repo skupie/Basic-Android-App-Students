@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Outer soft glow — large, very transparent -->
+    <item>
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="50%"
+                android:centerColor="#336366F1"
+                android:endColor="#00000000"/>
+        </shape>
+    </item>
+
+    <!-- Middle glow ring — medium, semi-transparent -->
+    <item
+        android:top="18dp"
+        android:bottom="18dp"
+        android:left="18dp"
+        android:right="18dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="50%"
+                android:centerColor="#556366F1"
+                android:endColor="#00000000"/>
+        </shape>
+    </item>
+
+    <!-- Inner bright core glow -->
+    <item
+        android:top="36dp"
+        android:bottom="36dp"
+        android:left="36dp"
+        android:right="36dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="50%"
+                android:centerColor="#886366F1"
+                android:endColor="#006366F1"/>
+        </shape>
+    </item>
+
+</layer-list>
