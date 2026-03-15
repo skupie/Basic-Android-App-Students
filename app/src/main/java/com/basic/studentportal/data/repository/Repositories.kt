@@ -45,19 +45,24 @@ class AuthRepository @Inject constructor(
     private val api: ApiService,
     private val tokenDataStore: TokenDataStore
 ) {
-    suspend fun login(email: String, password: String): Resource<LoginResponse> {
-        val result = safeApiCall { api.login(LoginRequest(email, password)) }
-        if (result is Resource.Success) {
-            tokenDataStore.saveAuthData(
-                token    = result.data.token,
-                name     = result.data.user.name,
-                email    = result.data.user.email,
-                role     = result.data.user.role,
-                photoUrl = result.data.user.profilePhotoUrl
-            )
-        }
-        return result
+    suspend fun login(identifier: String, password: String, isMobile: Boolean): Resource<LoginResponse> {
+    val request = if (isMobile) {
+        LoginRequest(mobile = identifier, password = password)
+    } else {
+        LoginRequest(email = identifier, password = password)
     }
+    val result = safeApiCall { api.login(request) }
+    if (result is Resource.Success) {
+        tokenDataStore.saveAuthData(
+            token = result.data.token,
+            name = result.data.user.name,
+            email = result.data.user.email,
+            role = result.data.user.role,
+            photoUrl = result.data.user.profilePhotoUrl
+        )
+    }
+    return result
+}
 
     suspend fun logout(): Resource<MessageResponse> {
         val result = safeApiCall { api.logout() }
