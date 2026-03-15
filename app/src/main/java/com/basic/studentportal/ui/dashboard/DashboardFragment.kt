@@ -111,10 +111,17 @@ class DashboardFragment : Fragment() {
             }
         }
 
-        // ── Due alert dialog — driven by ViewModel SharedFlow ─────────────────
+        // ── Due alert dialog ──────────────────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.showDueAlert.collect { alertData ->
                 showDueAlertDialog(alertData.dueMonthCount, alertData.totalDue)
+            }
+        }
+
+        // ── Notice alert dialog ───────────────────────────────────────────────
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.showNoticeAlert.collect { noticeData ->
+                showNoticeAlertDialog(noticeData)
             }
         }
     }
@@ -208,15 +215,8 @@ class DashboardFragment : Fragment() {
             binding.tvNoteTeacher.text = notes.latestNoteTeacherName?.let { "by $it" } ?: ""
         }
 
-        // ── Pending Notice ────────────────────────────────────────────────────
-        data.pendingNotice?.let { notice ->
-            binding.cardNotice.visible()
-            binding.tvNoticeTitle.text = notice.title
-            binding.tvNoticeBody.text = notice.body
-            binding.tvNoticeDate.text = notice.noticeDate
-            binding.btnAcknowledge.setOnClickListener { binding.cardNotice.gone() }
-            binding.btnCloseNotice.setOnClickListener { binding.cardNotice.gone() }
-        } ?: binding.cardNotice.gone()
+        // Inline notice card is no longer used — notices are shown as a popup dialog
+        binding.cardNotice.gone()
     }
 
     // ── Bengali digit helper ──────────────────────────────────────────────────
@@ -251,6 +251,34 @@ class DashboardFragment : Fragment() {
         dialogView.findViewById<TextView>(R.id.tvDialogAmount).text = totalDue.toCurrency()
         dialogView.findViewById<android.widget.Button>(R.id.btnDialogOk).setOnClickListener {
             viewModel.dismissDueAlert(dueMonthCount)
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    // ── Notice Alert Dialog ───────────────────────────────────────────────────
+
+    private fun showNoticeAlertDialog(noticeData: DashboardViewModel.NoticeAlertData) {
+        val dialog = Dialog(requireContext())
+        dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
+        dialog.setCancelable(false)
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_due_alert, null)
+        dialog.setContentView(dialogView)
+
+        dialog.window?.apply {
+            setBackgroundDrawableResource(android.R.color.transparent)
+            setLayout(
+                (resources.displayMetrics.widthPixels * 0.92).toInt(),
+                android.view.WindowManager.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        dialogView.findViewById<TextView>(R.id.tvDialogBody).text = noticeData.body
+        dialogView.findViewById<TextView>(R.id.tvDialogAmount).text = noticeData.title
+        dialogView.findViewById<android.widget.Button>(R.id.btnDialogOk).setOnClickListener {
+            viewModel.acknowledgeNotice(noticeData.id)
             dialog.dismiss()
         }
 
