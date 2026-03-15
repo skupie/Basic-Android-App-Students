@@ -1,5 +1,6 @@
 package com.basic.studentportal.ui.dashboard
 
+import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -94,7 +95,7 @@ class DashboardFragment : Fragment() {
             }
         }
 
-        // ── Attendance percentage — fetched separately, shown in hero card ────
+        // ── Attendance percentage ─────────────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.attendanceSummary.collect { state ->
                 when (state) {
@@ -102,6 +103,18 @@ class DashboardFragment : Fragment() {
                         binding.tvAttendancePct.animatePercent(to = state.data.attendancePercent)
                     is Resource.Loading -> binding.tvAttendancePct.text = "—"
                     is Resource.Error   -> binding.tvAttendancePct.text = "—"
+                }
+            }
+        }
+
+        // ── Unread notice badge on bell icon ──────────────────────────────────
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.unreadNoticeCount.collect { count ->
+                if (count > 0) {
+                    binding.dotNotification.text = if (count > 99) "99+" else count.toString()
+                    binding.dotNotification.visible()
+                } else {
+                    binding.dotNotification.gone()
                 }
             }
         }
@@ -159,25 +172,16 @@ class DashboardFragment : Fragment() {
             binding.tvDueFees.text = if (calculatedDue > 0) calculatedDue.toCurrency() else "0 ৳"
         }
 
-        // ── Due Alert ─────────────────────────────────────────────────────────
+        // ── Due Alert — shown as a popup dialog, not inline ──────────────────
         data.dueSummary?.let { due ->
-            val monthlyFee = data.student?.monthlyFee ?: 0.0
+            val monthlyFee    = data.student?.monthlyFee ?: 0.0
             val calculatedDue = due.dueMonthCount * monthlyFee
-            // Show alert whenever there are due months — do NOT rely on server's
-            // showDueAlert flag because it can be false even when payment is overdue.
             if (due.dueMonthCount > 0 && calculatedDue > 0) {
-                binding.cardDueAlert.visible()
-                binding.tvDueMessage.text =
-                    "${due.dueMonthCount} month${if (due.dueMonthCount != 1) "s" else ""} pending • Tap to pay"
-                binding.tvDueAmount.text = calculatedDue.toCurrency()
-                binding.btnDismissAlert.setOnClickListener {
-                    viewModel.dismissDueAlert()
-                    binding.cardDueAlert.gone()
-                }
-            } else {
-                binding.cardDueAlert.gone()
+                showDueAlertDialog(due.dueMonthCount, calculatedDue, due.dueAlertMessage)
             }
-        } ?: binding.cardDueAlert.gone()
+        }
+        // Keep the inline card always hidden — popup replaces it
+        binding.cardDueAlert.gone()
 
         // ── Today's Classes ───────────────────────────────────────────────────
         binding.tvRoutineDate.text = if (!data.routineDate.isNullOrBlank())
@@ -228,6 +232,41 @@ class DashboardFragment : Fragment() {
             binding.btnAcknowledge.setOnClickListener { binding.cardNotice.gone() }
             binding.btnCloseNotice.setOnClickListener { binding.cardNotice.gone() }
         } ?: binding.cardNotice.gone()
+    }
+
+    private fun showDueAlertDialog(dueMonthCount: Int, totalDue: Double, serverMessage: String?) {
+        val ctx = requireContext()
+        val dialog = Dialog(ctx)
+        dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
+        dialog.setCancelable(false)
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_due_alert, null)
+        dialog.setContentView(dialogView)
+
+        // Make the dialog take 90% screen width with rounded corners
+        dialog.window?.apply {
+            setBackgroundDrawableResource(android.R.color.transparent)
+            setLayout(
+                (resources.displayMetrics.widthPixels * 0.92).toInt(),
+                android.view.WindowManager.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        // Populate fields
+        val months = "$dueMonthCount month${if (dueMonthCount != 1) "s" else ""}"
+        val bodyText = serverMessage
+            ?: "You have $months of pending fees totalling ${totalDue.toCurrency()}. " +
+               "Please clear your dues at the earliest."
+
+        dialogView.findViewById<TextView>(R.id.tvDialogBody).text   = bodyText
+        dialogView.findViewById<TextView>(R.id.tvDialogAmount).text = totalDue.toCurrency()
+
+        dialogView.findViewById<android.widget.Button>(R.id.btnDialogOk).setOnClickListener {
+            viewModel.dismissDueAlert()
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 
     private fun buildRoutineRows(routines: List<Routine>) {
