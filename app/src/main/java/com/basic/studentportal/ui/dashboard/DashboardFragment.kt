@@ -111,7 +111,6 @@ class DashboardFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.unreadNoticeCount.collect { count ->
                 if (count > 0) {
-                    binding.dotNotification.text = if (count > 99) "99+" else count.toString()
                     binding.dotNotification.visible()
                 } else {
                     binding.dotNotification.gone()
@@ -243,7 +242,6 @@ class DashboardFragment : Fragment() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_due_alert, null)
         dialog.setContentView(dialogView)
 
-        // Make the dialog take 90% screen width with rounded corners
         dialog.window?.apply {
             setBackgroundDrawableResource(android.R.color.transparent)
             setLayout(
@@ -252,7 +250,6 @@ class DashboardFragment : Fragment() {
             )
         }
 
-        // Populate fields
         val months = "$dueMonthCount month${if (dueMonthCount != 1) "s" else ""}"
         val bodyText = serverMessage
             ?: "You have $months of pending fees totalling ${totalDue.toCurrency()}. " +
