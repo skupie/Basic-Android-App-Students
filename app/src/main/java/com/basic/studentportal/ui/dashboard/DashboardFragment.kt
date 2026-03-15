@@ -48,7 +48,6 @@ class DashboardFragment : Fragment() {
 
         binding.swipeRefresh.setOnRefreshListener { viewModel.loadDashboard() }
 
-        // Fix #6 — wire the header action buttons
         binding.btnNotification.setOnClickListener {
             findNavController().navigate(R.id.noticesFragment)
         }
@@ -56,7 +55,6 @@ class DashboardFragment : Fragment() {
             findNavController().navigate(R.id.settingsFragment)
         }
 
-        // Quick access navigation
         binding.quickAttendance.setOnClickListener {
             findNavController().navigate(R.id.attendanceFragment)
         }
@@ -145,9 +143,9 @@ class DashboardFragment : Fragment() {
 
             if (!student.enrollmentDate.isNullOrBlank()) {
                 binding.tvEnrollmentDate.text = "📅 Admitted: ${student.enrollmentDate}"
-                binding.tvEnrollmentDate.visibility = android.view.View.VISIBLE
+                binding.tvEnrollmentDate.visibility = View.VISIBLE
             } else {
-                binding.tvEnrollmentDate.visibility = android.view.View.GONE
+                binding.tvEnrollmentDate.visibility = View.GONE
             }
 
             binding.chipStatus.text = "● ${student.status.uppercase()}"
@@ -158,28 +156,24 @@ class DashboardFragment : Fragment() {
         }
 
         // ── Hero card stats ───────────────────────────────────────────────────
-        // tvAttendancePct is populated by the attendanceSummary collector above
-
         data.weeklyExamSummary?.let { exam ->
             binding.tvAvgScore.animatePercent(to = exam.averagePercent)
         }
 
-        // Fix #9: due = dueMonthCount × student.monthlyFee
         data.dueSummary?.let { due ->
             val monthlyFee = data.student?.monthlyFee ?: 0.0
             val calculatedDue = due.dueMonthCount * monthlyFee
             binding.tvDueFees.text = if (calculatedDue > 0) calculatedDue.toCurrency() else "0 ৳"
         }
 
-        // ── Due Alert — shown as a popup dialog, not inline ──────────────────
+        // ── Due Alert popup ───────────────────────────────────────────────────
         data.dueSummary?.let { due ->
             val monthlyFee    = data.student?.monthlyFee ?: 0.0
             val calculatedDue = due.dueMonthCount * monthlyFee
             if (due.dueMonthCount > 0 && calculatedDue > 0) {
-                showDueAlertDialog(due.dueMonthCount, calculatedDue, due.dueAlertMessage)
+                showDueAlertDialog(due.dueMonthCount, calculatedDue)
             }
         }
-        // Keep the inline card always hidden — popup replaces it
         binding.cardDueAlert.gone()
 
         // ── Today's Classes ───────────────────────────────────────────────────
@@ -233,7 +227,24 @@ class DashboardFragment : Fragment() {
         } ?: binding.cardNotice.gone()
     }
 
-    private fun showDueAlertDialog(dueMonthCount: Int, totalDue: Double, serverMessage: String?) {
+    // ── Bengali helpers ───────────────────────────────────────────────────────
+
+    private fun Int.toBengali(): String {
+        val bn = charArrayOf('০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯')
+        return this.toString().map { c -> if (c.isDigit()) bn[c - '0'] else c }.joinToString("")
+    }
+
+    private fun Double.toBengaliAmount(): String {
+        val amount = this.toLong()
+        // Format with comma grouping e.g. 12000 -> 12,000 then convert to Bengali
+        val formatted = String.format("%,d", amount)
+        return formatted.map { c ->
+            val bn = charArrayOf('০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯')
+            if (c.isDigit()) bn[c - '0'] else c
+        }.joinToString("")
+    }
+
+    private fun showDueAlertDialog(dueMonthCount: Int, totalDue: Double) {
         val ctx = requireContext()
         val dialog = Dialog(ctx)
         dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
@@ -250,13 +261,14 @@ class DashboardFragment : Fragment() {
             )
         }
 
-        val months = "$dueMonthCount month${if (dueMonthCount != 1) "s" else ""}"
-        val bodyText = serverMessage
-            ?: "You have $months of pending fees totalling ${totalDue.toCurrency()}. " +
-               "Please clear your dues at the earliest."
+        val monthBn  = dueMonthCount.toBengali()
+        val amountBn = totalDue.toBengaliAmount()
+
+        val bodyText = "প্রিয় শিক্ষার্থী, আপনার $monthBn মাসের বকেয়া জমা হয়েছে $amountBn টাকা। " +
+                       "অনুগ্রহ করে বকেয়াটি আগামী ২ কর্ম দিবসের মধ্যে পরিশোধ করুন।"
 
         dialogView.findViewById<TextView>(R.id.tvDialogBody).text   = bodyText
-        dialogView.findViewById<TextView>(R.id.tvDialogAmount).text = totalDue.toCurrency()
+        dialogView.findViewById<TextView>(R.id.tvDialogAmount).text = "${amountBn} টাকা"
 
         dialogView.findViewById<android.widget.Button>(R.id.btnDialogOk).setOnClickListener {
             viewModel.dismissDueAlert()
