@@ -7,7 +7,6 @@ import com.basic.studentportal.data.model.AttendanceSummary
 import com.basic.studentportal.data.model.DashboardResponse
 import com.basic.studentportal.data.repository.AttendanceRepository
 import com.basic.studentportal.data.repository.DashboardRepository
-import com.basic.studentportal.data.repository.NoticeRepository
 import com.basic.studentportal.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -22,7 +21,6 @@ import javax.inject.Inject
 class DashboardViewModel @Inject constructor(
     private val repository: DashboardRepository,
     private val attendanceRepository: AttendanceRepository,
-    private val noticeRepository: NoticeRepository,
     private val tokenDataStore: TokenDataStore
 ) : ViewModel() {
 
@@ -38,20 +36,10 @@ class DashboardViewModel @Inject constructor(
     private val _showDueAlert = MutableSharedFlow<DueAlertData>(extraBufferCapacity = 1)
     val showDueAlert: SharedFlow<DueAlertData> = _showDueAlert.asSharedFlow()
 
-    private val _showNoticeAlert = MutableSharedFlow<NoticeAlertData>(extraBufferCapacity = 1)
-    val showNoticeAlert: SharedFlow<NoticeAlertData> = _showNoticeAlert.asSharedFlow()
-
     data class DueAlertData(
         val dueMonthCount: Int,
         val totalDue: Double,
         val message: String?
-    )
-
-    data class NoticeAlertData(
-        val id: Int,
-        val title: String,
-        val body: String,
-        val noticeDate: String
     )
 
     init { loadDashboard() }
@@ -65,32 +53,17 @@ class DashboardViewModel @Inject constructor(
             if (result is Resource.Success) {
                 val data = result.data
 
-                // Unread notice badge + notice popup
+                // Unread notice badge
                 val notice = data.pendingNotice
-                if (notice != null && !notice.isAcknowledged) {
-                    _unreadNoticeCount.value = 1
-                    _showNoticeAlert.emit(
-                        NoticeAlertData(
-                            id         = notice.id,
-                            title      = notice.title,
-                            body       = notice.body,
-                            noticeDate = notice.noticeDate
-                        )
-                    )
-                } else {
-                    _unreadNoticeCount.value = 0
-                }
+                _unreadNoticeCount.value = if (notice != null && !notice.isAcknowledged) 1 else 0
 
-                // Due alert — show only when server explicitly sets showDueAlert = true
-                val due     = data.dueSummary
-                val monthly = data.student?.monthlyFee ?: 0.0
-                if (due != null && due.showDueAlert && due.dueMonthCount > 0) {
-                    val totalDue = due.dueMonthCount * monthly
-                    if (totalDue > 0) {
-                        _showDueAlert.emit(
-                            DueAlertData(due.dueMonthCount, totalDue, due.dueAlertMessage)
-                        )
-                    }
+                // Due alert — server's showDueAlert flag is the single source of truth.
+                // Use dueAmount directly from server (not calculated) for accuracy.
+                val due = data.dueSummary
+                if (due != null && due.showDueAlert && due.dueMonthCount > 0 && due.dueAmount > 0) {
+                    _showDueAlert.emit(
+                        DueAlertData(due.dueMonthCount, due.dueAmount, due.dueAlertMessage)
+                    )
                 }
             }
         }
@@ -103,13 +76,6 @@ class DashboardViewModel @Inject constructor(
     fun dismissDueAlert(dueMonthCount: Int) {
         viewModelScope.launch {
             repository.dismissDueAlert()
-        }
-    }
-
-    fun acknowledgeNotice(noticeId: Int) {
-        viewModelScope.launch {
-            noticeRepository.acknowledgeNotice(noticeId)
-            _unreadNoticeCount.value = 0
         }
     }
 }
