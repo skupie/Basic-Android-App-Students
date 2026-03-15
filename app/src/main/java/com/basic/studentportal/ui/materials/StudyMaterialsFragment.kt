@@ -1,8 +1,10 @@
 package com.basic.studentportal.ui.materials
 
-import android.content.Intent
+import android.app.DownloadManager
+import android.content.Context
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -28,6 +30,7 @@ import com.basic.studentportal.databinding.FragmentStudyMaterialsBinding
 import com.basic.studentportal.databinding.ItemStudyMaterialBinding
 import com.basic.studentportal.utils.Resource
 import com.basic.studentportal.utils.gone
+import com.basic.studentportal.utils.showToast
 import com.basic.studentportal.utils.visible
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -94,7 +97,7 @@ class StudyMaterialsViewModel @Inject constructor(
 // ─── Adapter ─────────────────────────────────────────────────────────────────
 
 class StudyMaterialAdapter(
-    private val onOpen: (StudyMaterial) -> Unit
+    private val onDownload: (StudyMaterial) -> Unit
 ) : ListAdapter<StudyMaterial, StudyMaterialAdapter.VH>(DiffCb()) {
 
     inner class VH(private val b: ItemStudyMaterialBinding) : RecyclerView.ViewHolder(b.root) {
@@ -102,19 +105,17 @@ class StudyMaterialAdapter(
             val ctx = b.root.context
             val subjectKey = item.subject
 
-            b.tvTitle.text = item.title
+            b.tvTitle.text       = item.title
             b.tvDescription.text = item.description ?: ""
-            b.tvTeacher.text = item.uploadedByName ?: ""
-            b.tvUpdated.text = item.updatedAt?.take(10)?.let { "· $it" } ?: ""
+            b.tvTeacher.text     = item.uploadedByName ?: ""
+            b.tvUpdated.text     = item.updatedAt?.take(10)?.let { "· $it" } ?: ""
 
-            // File size
             b.tvFileSize.text = when {
                 (item.fileSizeKb ?: 0) >= 1024 -> "${"%.1f".format((item.fileSizeKb!! / 1024.0))} MB"
-                (item.fileSizeKb ?: 0) > 0 -> "${item.fileSizeKb} KB"
+                (item.fileSizeKb ?: 0) > 0      -> "${item.fileSizeKb} KB"
                 else -> ""
             }
 
-            // Subject label pill
             val label = item.subjectLabel
                 ?: item.subject?.uppercase()?.take(4)
                 ?: ""
@@ -122,20 +123,18 @@ class StudyMaterialAdapter(
             b.tvSubject.background = ContextCompat.getDrawable(ctx, subjectLabelBg(subjectKey))
             b.tvSubject.setTextColor(ContextCompat.getColor(ctx, subjectLabelColor(subjectKey)))
 
-            // Icon background color
             b.cardFileIcon.background = ContextCompat.getDrawable(ctx, subjectIconBg(subjectKey))
 
-            // File icon
             b.tvFileIcon.text = when {
-                item.mimeType?.contains("pdf") == true -> "📄"
+                item.mimeType?.contains("pdf") == true   -> "📄"
                 item.mimeType?.contains("image") == true -> "🖼️"
-                item.mimeType?.contains("word") == true -> "📝"
+                item.mimeType?.contains("word") == true  -> "📝"
                 else -> "📁"
             }
 
             if (item.downloadUrl != null) {
                 b.btnDownload.visible()
-                b.btnDownload.setOnClickListener { onOpen(item) }
+                b.btnDownload.setOnClickListener { onDownload(item) }
             } else {
                 b.btnDownload.gone()
             }
@@ -176,9 +175,7 @@ class StudyMaterialsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         adapter = StudyMaterialAdapter { material ->
-            material.downloadUrl?.let { url ->
-                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-            }
+            material.downloadUrl?.let { url -> downloadFile(material.title, url) }
         }
 
         binding.recyclerMaterials.layoutManager = LinearLayoutManager(requireContext())
@@ -186,14 +183,12 @@ class StudyMaterialsFragment : Fragment() {
 
         binding.swipeRefresh.setOnRefreshListener { viewModel.loadMaterials(selectedSubjectKey) }
 
-        // ── Search ────────────────────────────────────────────────────────────
         binding.etSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) { filterAndSubmit(s?.toString() ?: "") }
         })
 
-        // ── "All" chip ────────────────────────────────────────────────────────
         binding.chipAll.setOnClickListener { selectSubject(null) }
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -203,17 +198,12 @@ class StudyMaterialsFragment : Fragment() {
                     is Resource.Success -> {
                         binding.swipeRefresh.isRefreshing = false
                         allMaterials = state.data.data
-
-                        // Build subject filter chips from API options
                         buildChips(state.data.subjectOptions)
 
-                        // Stats
-                        binding.tvTotalFiles.text = allMaterials.size.toString()
+                        binding.tvTotalFiles.text   = allMaterials.size.toString()
                         val subjectCount = allMaterials.map { it.subject }.distinct().size
                         binding.tvSubjectCount.text = subjectCount.toString()
-                        // "This week" count
-                        val weekCount = countThisWeek(allMaterials)
-                        binding.tvThisWeek.text = weekCount.toString()
+                        binding.tvThisWeek.text     = countThisWeek(allMaterials).toString()
 
                         filterAndSubmit(binding.etSearch.text?.toString() ?: "")
                     }
@@ -227,20 +217,52 @@ class StudyMaterialsFragment : Fragment() {
         }
     }
 
+    // ── Direct download via DownloadManager ───────────────────────────────────
+
+    private fun downloadFile(title: String, url: String) {
+        try {
+            val fileName = title
+                .replace(Regex("[^a-zA-Z0-9._\\- ]"), "")
+                .trim()
+                .replace(" ", "_")
+                .take(60)
+                .ifBlank { "file" } + if (!title.contains(".")) ".pdf" else ""
+
+            val request = DownloadManager.Request(Uri.parse(url)).apply {
+                setTitle(title)
+                setDescription("ডাউনলোড হচ্ছে…")
+                setNotificationVisibility(
+                    DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
+                )
+                setDestinationInExternalPublicDir(
+                    Environment.DIRECTORY_DOWNLOADS, fileName
+                )
+                setAllowedOverMetered(true)
+                setAllowedOverRoaming(true)
+            }
+
+            val dm = requireContext()
+                .getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            dm.enqueue(request)
+
+            requireContext().showToast("ডাউনলোড শুরু হয়েছে — নোটিফিকেশন চেক করুন")
+        } catch (e: Exception) {
+            requireContext().showToast("ডাউনলোড শুরু করতে ব্যর্থ হয়েছে")
+        }
+    }
+
     private fun buildChips(options: List<SubjectOption>?) {
         val chipGroup = binding.chipGroup
-        // Remove any dynamically added chips (keep chipAll at index 0)
         while (chipGroup.childCount > 1) chipGroup.removeViewAt(1)
 
         options?.forEach { opt ->
             val chip = TextView(requireContext()).apply {
                 text = opt.label
+                tag  = opt.key
                 textSize = 13f
                 setTextColor(ContextCompat.getColor(requireContext(), R.color.text_hint))
                 background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_card_dark)
-                setPadding(
-                    dpToPx(18), dpToPx(7), dpToPx(18), dpToPx(7)
-                )
+                setPadding(dpToPx(18), dpToPx(7), dpToPx(18), dpToPx(7))
                 layoutParams = ViewGroup.MarginLayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT
@@ -253,25 +275,19 @@ class StudyMaterialsFragment : Fragment() {
 
     private fun selectSubject(key: String?) {
         selectedSubjectKey = key
-        // Update chip appearances
         val chipGroup = binding.chipGroup
-        // Reset all
         for (i in 0 until chipGroup.childCount) {
             val chip = chipGroup.getChildAt(i) as? TextView ?: continue
             chip.background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_card_dark)
             chip.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_hint))
         }
-        // Activate selected
         if (key == null) {
             binding.chipAll.background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_pill_brand)
             binding.chipAll.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
         } else {
             for (i in 1 until chipGroup.childCount) {
                 val chip = chipGroup.getChildAt(i) as? TextView ?: continue
-                // Match by text (crude but works when we built chips from SubjectOption.label)
-                // Better: tag each chip with the key
-                val tag = chip.tag as? String
-                if (tag == key) {
+                if (chip.tag as? String == key) {
                     chip.background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_pill_brand)
                     chip.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
                     break
@@ -289,8 +305,8 @@ class StudyMaterialsFragment : Fragment() {
         if (query.isNotBlank()) {
             list = list.filter {
                 it.title.contains(query, true) ||
-                        it.description?.contains(query, true) == true ||
-                        it.subject?.contains(query, true) == true
+                it.description?.contains(query, true) == true ||
+                it.subject?.contains(query, true) == true
             }
         }
         adapter.submitList(list)
@@ -305,13 +321,10 @@ class StudyMaterialsFragment : Fragment() {
                 val d = m.updatedAt?.take(10) ?: return@count false
                 LocalDate.parse(d, fmt).isAfter(weekAgo)
             }
-        } catch (e: Exception) {
-            0
-        }
+        } catch (e: Exception) { 0 }
     }
 
-    private fun dpToPx(dp: Int): Int =
-        (dp * resources.displayMetrics.density).toInt()
+    private fun dpToPx(dp: Int): Int = (dp * resources.displayMetrics.density).toInt()
 
     override fun onDestroyView() {
         super.onDestroyView()
