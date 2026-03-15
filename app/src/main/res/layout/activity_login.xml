@@ -22,24 +22,28 @@
             android:paddingTop="56dp"
             android:paddingBottom="28dp">
 
-            <!-- Institute Logo — white rounded card so black logo is visible -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="130dp"
-                android:layout_height="130dp"
-                android:layout_marginBottom="18dp"
-                app:cardBackgroundColor="#FFFFFF"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="0dp">
+            <!-- Glow container -->
+            <FrameLayout
+                android:layout_width="180dp"
+                android:layout_height="180dp"
+                android:layout_marginBottom="18dp">
 
-                <ImageView
+                <!-- Radial glow behind the logo -->
+                <View
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:background="@drawable/bg_logo_glow"/>
+
+                <!-- Actual logo centred inside the glow -->
+                <ImageView
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:layout_gravity="center"
                     android:src="@drawable/ic_logo"
                     android:scaleType="fitCenter"
-                    android:padding="10dp"
                     android:contentDescription="Basic Academy Logo"/>
 
-            </androidx.cardview.widget.CardView>
+            </FrameLayout>
 
             <!-- Welcome text -->
             <TextView
@@ -66,6 +70,7 @@
                 android:paddingTop="5dp"
                 android:paddingBottom="5dp"
                 android:letterSpacing="0.04"/>
+
         </LinearLayout>
 
         <!-- ── Divider ── -->
@@ -116,6 +121,7 @@
                     android:textSize="13sp"
                     android:background="@null"
                     android:textColor="@color/text_hint"/>
+
             </LinearLayout>
 
             <!-- Identifier label -->
@@ -138,6 +144,7 @@
                 android:layout_marginBottom="20dp"
                 style="@style/Widget.StudentPortal.TextInputLayout"
                 app:endIconMode="none">
+
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etEmail"
                     android:layout_width="match_parent"
@@ -148,9 +155,10 @@
                     android:textSize="15sp"
                     android:paddingTop="16dp"
                     android:paddingBottom="16dp"/>
+
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Mobile field -->
+            <!-- Mobile field (hidden by default) -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilMobile"
                 android:layout_width="match_parent"
@@ -159,6 +167,7 @@
                 style="@style/Widget.StudentPortal.TextInputLayout"
                 app:endIconMode="none"
                 android:visibility="gone">
+
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etMobile"
                     android:layout_width="match_parent"
@@ -169,6 +178,7 @@
                     android:textSize="15sp"
                     android:paddingTop="16dp"
                     android:paddingBottom="16dp"/>
+
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Password label -->
@@ -189,6 +199,7 @@
                 style="@style/Widget.StudentPortal.TextInputLayout"
                 app:endIconMode="password_toggle"
                 app:endIconTint="@color/text_hint">
+
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPassword"
                     android:layout_width="match_parent"
@@ -199,6 +210,7 @@
                     android:textSize="15sp"
                     android:paddingTop="16dp"
                     android:paddingBottom="16dp"/>
+
             </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
@@ -233,7 +245,10 @@
 
         </LinearLayout>
 
-        <View android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"/>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
 
         <TextView
             android:layout_width="match_parent"
