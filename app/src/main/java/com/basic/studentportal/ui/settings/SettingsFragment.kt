@@ -1,6 +1,5 @@
 package com.basic.studentportal.ui.settings
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import com.basic.studentportal.data.local.TokenDataStore
 import com.basic.studentportal.data.repository.AuthRepository
 import com.basic.studentportal.databinding.FragmentSettingsBinding
+import com.basic.studentportal.ui.main.MainActivity
 import com.basic.studentportal.utils.Resource
 import com.basic.studentportal.utils.showToast
 import dagger.hilt.android.AndroidEntryPoint
@@ -52,12 +52,11 @@ class SettingsViewModel @Inject constructor(
             _updateResult.value = Resource.Loading
             val result = authRepository.updateEmail(newEmail, currentPassword)
             if (result is Resource.Success) {
-                // Persist updated email locally
                 tokenDataStore.saveAuthData(
-                    token = tokenDataStore.getToken().first() ?: "",
-                    name  = _profile.value?.name ?: "",
-                    email = newEmail,
-                    role  = "student",
+                    token    = tokenDataStore.getToken().first() ?: "",
+                    name     = _profile.value?.name ?: "",
+                    email    = newEmail,
+                    role     = "student",
                     photoUrl = null
                 )
                 _profile.value = _profile.value?.copy(email = newEmail)
@@ -73,8 +72,11 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun logout() {
-        viewModelScope.launch { authRepository.logout() }
+    /** Fire-and-forget server logout — token is cleared separately by MainActivity. */
+    fun notifyServerLogout() {
+        viewModelScope.launch {
+            authRepository.logout()
+        }
     }
 
     fun resetUpdateResult() { _updateResult.value = null }
@@ -103,8 +105,8 @@ class SettingsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.profile.collect { profile ->
                 profile ?: return@collect
-                binding.tvProfileName.text  = profile.name
-                binding.tvProfileEmail.text = profile.email
+                binding.tvProfileName.text   = profile.name
+                binding.tvProfileEmail.text  = profile.email
                 binding.tvAvatarInitial.text = profile.name.firstOrNull()?.uppercase() ?: "?"
             }
         }
@@ -122,7 +124,6 @@ class SettingsFragment : Fragment() {
                         binding.btnUpdateEmail.isEnabled    = true
                         binding.btnUpdatePassword.isEnabled = true
                         requireContext().showToast(result.data)
-                        // Clear fields
                         binding.etNewEmail.text?.clear()
                         binding.etEmailPassword.text?.clear()
                         binding.etCurrentPassword.text?.clear()
@@ -142,14 +143,21 @@ class SettingsFragment : Fragment() {
 
         // ── Update Email ──────────────────────────────────────────────────────
         binding.btnUpdateEmail.setOnClickListener {
-            val newEmail  = binding.etNewEmail.text.toString().trim()
-            val password  = binding.etEmailPassword.text.toString().trim()
-            if (newEmail.isEmpty()) { binding.tilNewEmail.error = "Enter new email"; return@setOnClickListener }
-            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(newEmail).matches()) {
-                binding.tilNewEmail.error = "Enter a valid email"; return@setOnClickListener
+            val newEmail = binding.etNewEmail.text.toString().trim()
+            val password = binding.etEmailPassword.text.toString().trim()
+            if (newEmail.isEmpty()) {
+                binding.tilNewEmail.error = "Enter new email"
+                return@setOnClickListener
             }
-            if (password.isEmpty()) { binding.tilEmailPassword.error = "Enter your current password"; return@setOnClickListener }
-            binding.tilNewEmail.error = null
+            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(newEmail).matches()) {
+                binding.tilNewEmail.error = "Enter a valid email"
+                return@setOnClickListener
+            }
+            if (password.isEmpty()) {
+                binding.tilEmailPassword.error = "Enter your current password"
+                return@setOnClickListener
+            }
+            binding.tilNewEmail.error     = null
             binding.tilEmailPassword.error = null
             viewModel.updateEmail(newEmail, password)
         }
@@ -159,12 +167,21 @@ class SettingsFragment : Fragment() {
             val current = binding.etCurrentPassword.text.toString().trim()
             val newPwd  = binding.etNewPassword.text.toString().trim()
             val confirm = binding.etConfirmPassword.text.toString().trim()
-            if (current.isEmpty()) { binding.tilCurrentPassword.error = "Enter current password"; return@setOnClickListener }
-            if (newPwd.length < 8) { binding.tilNewPassword.error = "Minimum 8 characters"; return@setOnClickListener }
-            if (newPwd != confirm) { binding.tilConfirmPassword.error = "Passwords do not match"; return@setOnClickListener }
-            binding.tilCurrentPassword.error = null
-            binding.tilNewPassword.error = null
-            binding.tilConfirmPassword.error = null
+            if (current.isEmpty()) {
+                binding.tilCurrentPassword.error = "Enter current password"
+                return@setOnClickListener
+            }
+            if (newPwd.length < 8) {
+                binding.tilNewPassword.error = "Minimum 8 characters"
+                return@setOnClickListener
+            }
+            if (newPwd != confirm) {
+                binding.tilConfirmPassword.error = "Passwords do not match"
+                return@setOnClickListener
+            }
+            binding.tilCurrentPassword.error  = null
+            binding.tilNewPassword.error      = null
+            binding.tilConfirmPassword.error  = null
             viewModel.updatePassword(current, newPwd)
         }
 
@@ -174,13 +191,10 @@ class SettingsFragment : Fragment() {
                 .setTitle("Logout")
                 .setMessage("Are you sure you want to sign out?")
                 .setPositiveButton("Logout") { _, _ ->
-                    viewModel.logout()
-                    startActivity(
-                        Intent(requireContext(),
-                            com.basic.studentportal.ui.auth.LoginActivity::class.java).apply {
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                        }
-                    )
+                    // Tell server to revoke token (fire-and-forget)
+                    viewModel.notifyServerLogout()
+                    // Clear token locally FIRST, then navigate — avoids race condition
+                    (requireActivity() as MainActivity).performLogout()
                 }
                 .setNegativeButton("Cancel", null)
                 .show()
