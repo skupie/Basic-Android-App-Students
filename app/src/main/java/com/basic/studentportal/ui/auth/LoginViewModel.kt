@@ -25,14 +25,13 @@ class LoginViewModel @Inject constructor(
     val loginState: StateFlow<Resource<LoginResponse>> = _loginState.asStateFlow()
 
     init {
-        // Don't emit loading initially – wait for user action
         _loginState.value = Resource.Error("", null)
     }
 
-    fun login(email: String, password: String) {
+    fun login(identifier: String, password: String, isMobile: Boolean) {
         viewModelScope.launch {
             _loginState.value = Resource.Loading
-            _loginState.value = authRepository.login(email, password)
+            _loginState.value = authRepository.login(identifier, password, isMobile)
         }
     }
 }
