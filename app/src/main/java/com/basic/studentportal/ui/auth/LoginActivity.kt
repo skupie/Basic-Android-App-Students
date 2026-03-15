@@ -28,12 +28,40 @@ class LoginActivity : AppCompatActivity() {
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Already logged in?
         lifecycleScope.launch {
             viewModel.isLoggedIn.collect { isLoggedIn ->
                 if (isLoggedIn) navigateToMain()
             }
         }
 
+        // Observe login state once here in onCreate — not in onStart —
+        // so stale errors from a previous attempt don't re-fire as toasts.
+        lifecycleScope.launch {
+            viewModel.loginState.collect { state ->
+                when (state) {
+                    is Resource.Loading -> {
+                        binding.progressBar.isVisible = true
+                        binding.btnLogin.text = ""
+                        binding.btnLogin.isEnabled = false
+                    }
+                    is Resource.Success -> {
+                        binding.progressBar.isVisible = false
+                        binding.btnLogin.text = "Sign In  →"
+                        binding.btnLogin.isEnabled = true
+                        navigateToMain()
+                    }
+                    is Resource.Error -> {
+                        binding.progressBar.isVisible = false
+                        binding.btnLogin.text = "Sign In  →"
+                        binding.btnLogin.isEnabled = true
+                        if (state.message.isNotBlank()) showToast(state.message)
+                    }
+                }
+            }
+        }
+
+        // ── Login method tabs ─────────────────────────────────────────────────
         selectLoginTab(email = true)
 
         binding.tabEmail.setOnClickListener {
@@ -52,6 +80,11 @@ class LoginActivity : AppCompatActivity() {
         val activeTxt   = ContextCompat.getColor(this, R.color.text_primary)
         val inactiveTxt = ContextCompat.getColor(this, R.color.text_hint)
 
+        // Clear all errors when switching tabs
+        binding.tilEmail.error = null
+        binding.tilMobile.error = null
+        binding.tilPassword.error = null
+
         if (email) {
             binding.tabEmail.background = activeDrawable
             binding.tabEmail.setTextColor(activeTxt)
@@ -60,7 +93,7 @@ class LoginActivity : AppCompatActivity() {
             binding.tilEmail.isVisible = true
             binding.tilMobile.isVisible = false
             binding.labelIdentifier.text = "EMAIL ADDRESS"
-            binding.etEmail.hint = "student@school.com"
+            binding.etEmail.hint = "your@email.com"
             binding.etEmail.inputType = android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
         } else {
             binding.tabMobile.background = activeDrawable
@@ -81,6 +114,11 @@ class LoginActivity : AppCompatActivity() {
         }
         val password = binding.etPassword.text.toString().trim()
 
+        // Clear previous errors
+        binding.tilEmail.error = null
+        binding.tilMobile.error = null
+        binding.tilPassword.error = null
+
         if (identifier.isEmpty()) {
             if (isEmailMode) binding.tilEmail.error = "Email is required"
             else binding.tilMobile.error = "Mobile number is required"
@@ -99,44 +137,11 @@ class LoginActivity : AppCompatActivity() {
             return
         }
 
-        binding.tilEmail.error = null
-        binding.tilMobile.error = null
-        binding.tilPassword.error = null
-
-        // Pass isMobile flag so the correct API field is used
-        viewModel.login(identifier, password, isMobile = !isEmailMode)
-    }
-
-    private fun observeLogin() {
-        lifecycleScope.launch {
-            viewModel.loginState.collect { state ->
-                when (state) {
-                    is Resource.Loading -> {
-                        binding.progressBar.isVisible = true
-                        binding.btnLogin.isEnabled = false
-                    }
-                    is Resource.Success -> {
-                        binding.progressBar.isVisible = false
-                        binding.btnLogin.isEnabled = true
-                        navigateToMain()
-                    }
-                    is Resource.Error -> {
-                        binding.progressBar.isVisible = false
-                        binding.btnLogin.isEnabled = true
-                        if (state.message.isNotBlank()) showToast(state.message)
-                    }
-                }
-            }
-        }
+        viewModel.login(identifier, password)
     }
 
     private fun navigateToMain() {
         startActivity(Intent(this, MainActivity::class.java))
         finish()
-    }
-
-    override fun onStart() {
-        super.onStart()
-        observeLogin()
     }
 }
