@@ -251,7 +251,7 @@
         android:gravity="center"
         android:paddingBottom="28dp"
         android:paddingTop="16dp"
-        android:text="©2026"
+        android:text="Basic Academy · ©2002"
         android:textColor="@color/text_disabled"
         android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="parent"
