@@ -5,34 +5,33 @@
     android:viewportWidth="24"
     android:viewportHeight="24">
 
-    <!-- Receipt outline -->
+    <!-- Card body -->
     <path
-        android:fillColor="#00000000"
-        android:strokeColor="@color/white"
-        android:strokeWidth="1.8"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:pathData="M4,2 L20,2 L20,22 L16,19 L12,22 L8,19 L4,22 Z"/>
+        android:fillColor="@android:color/white"
+        android:pathData="M20,4H4C2.89,4 2,4.89 2,6V18C2,19.11 2.89,20 4,20H20C21.11,20 22,19.11 22,18V6C22,4.89 21.11,4 20,4Z"/>
 
-    <!-- Taka / currency symbol line -->
+    <!-- Magnetic stripe -->
     <path
-        android:fillColor="#00000000"
-        android:strokeColor="@color/white"
-        android:strokeWidth="1.6"
-        android:strokeLineCap="round"
-        android:pathData="M9,8 L15,8"/>
+        android:fillColor="#44000000"
+        android:pathData="M2,8H22V11H2Z"/>
 
+    <!-- Signature strip -->
     <path
-        android:fillColor="#00000000"
-        android:strokeColor="@color/white"
-        android:strokeWidth="1.6"
-        android:strokeLineCap="round"
-        android:pathData="M9,12 L15,12"/>
+        android:fillColor="#22000000"
+        android:pathData="M4,14H14V16H4Z"/>
 
+    <!-- Chip -->
+    <rect
+        android:fillColor="#FFCC00"
+        android:left="4"
+        android:top="5.5"
+        android:right="8"
+        android:bottom="8.5"/>
+
+    <!-- Taka symbol on chip -->
     <path
-        android:fillColor="#00000000"
-        android:strokeColor="@color/white"
-        android:strokeWidth="1.6"
-        android:strokeLineCap="round"
-        android:pathData="M9,16 L13,16"/>
+        android:fillColor="#886600"
+        android:strokeWidth="0.6"
+        android:pathData="M5.5,6.5 L6.5,6.5 M5.2,7.2 L6.8,7.2 M5.8,6.5 L5.6,8"/>
+
 </vector>
