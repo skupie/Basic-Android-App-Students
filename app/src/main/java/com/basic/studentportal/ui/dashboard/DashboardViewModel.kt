@@ -25,16 +25,23 @@ class DashboardViewModel @Inject constructor(
     private val _attendanceSummary = MutableStateFlow<Resource<AttendanceSummary>>(Resource.Loading)
     val attendanceSummary: StateFlow<Resource<AttendanceSummary>> = _attendanceSummary
 
+    private val _unreadNoticeCount = MutableStateFlow(0)
+    val unreadNoticeCount: StateFlow<Int> = _unreadNoticeCount
+
     init { loadDashboard() }
 
     fun loadDashboard() {
         viewModelScope.launch {
             _dashboard.value = Resource.Loading
-            _dashboard.value = repository.getDashboard()
+            val result = repository.getDashboard()
+            _dashboard.value = result
+            if (result is Resource.Success) {
+                val notice = result.data.pendingNotice
+                _unreadNoticeCount.value = if (notice != null && !notice.isAcknowledged) 1 else 0
+            }
         }
         viewModelScope.launch {
             _attendanceSummary.value = Resource.Loading
-            // null month = current month on the server
             _attendanceSummary.value = attendanceRepository.getSummary(month = null)
         }
     }
