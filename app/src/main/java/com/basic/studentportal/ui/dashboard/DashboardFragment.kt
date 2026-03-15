@@ -1,7 +1,6 @@
 package com.basic.studentportal.ui.dashboard
 
 import android.app.Dialog
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -32,10 +31,6 @@ class DashboardFragment : Fragment() {
     private var _binding: FragmentDashboardBinding? = null
     private val binding get() = _binding!!
     private val viewModel: DashboardViewModel by viewModels()
-
-    // Prefs key for tracking which due-alert message the user has already dismissed
-    private val PREFS_NAME = "due_alert_prefs"
-    private val PREFS_KEY_DISMISSED_MSG = "dismissed_due_alert_msg"
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -131,7 +126,6 @@ class DashboardFragment : Fragment() {
         binding.scrollContent.visible()
         binding.tvError.gone()
 
-        // ── Student Info ──────────────────────────────────────────────────────
         data.student?.let { student ->
             binding.tvHeaderName.text = student.name
             binding.tvStudentName.text = buildString {
@@ -160,7 +154,6 @@ class DashboardFragment : Fragment() {
             )
         }
 
-        // ── Hero card stats ───────────────────────────────────────────────────
         data.weeklyExamSummary?.let { exam ->
             binding.tvAvgScore.animatePercent(to = exam.averagePercent)
         }
@@ -171,26 +164,15 @@ class DashboardFragment : Fragment() {
             binding.tvDueFees.text = if (calculatedDue > 0) calculatedDue.toCurrency() else "0 ৳"
         }
 
-        // ── Due Alert popup — only shown if management sent a NEW alert ───────
         data.dueSummary?.let { due ->
             val monthlyFee    = data.student?.monthlyFee ?: 0.0
             val calculatedDue = due.dueMonthCount * monthlyFee
-            if (due.showDueAlert && due.dueMonthCount > 0 && calculatedDue > 0) {
-                // Build the alert fingerprint: combination of month count + message
-                // When management sends a new alert, either the message or count changes
-                val alertFingerprint = "${due.dueMonthCount}|${due.dueAlertMessage ?: calculatedDue.toInt()}"
-                val prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                val lastDismissed = prefs.getString(PREFS_KEY_DISMISSED_MSG, null)
-
-                if (alertFingerprint != lastDismissed) {
-                    // This is a new/fresh alert from management — show it
-                    showDueAlertDialog(due.dueMonthCount, calculatedDue, due.dueAlertMessage, alertFingerprint)
-                }
+            if (due.dueMonthCount > 0 && calculatedDue > 0) {
+                showDueAlertDialog(due.dueMonthCount, calculatedDue)
             }
         }
         binding.cardDueAlert.gone()
 
-        // ── Today's Classes ───────────────────────────────────────────────────
         binding.tvRoutineDate.text = if (!data.routineDate.isNullOrBlank())
             "TODAY'S CLASSES · ${data.routineDate}"
         else "TODAY'S CLASSES"
@@ -204,7 +186,6 @@ class DashboardFragment : Fragment() {
             buildRoutineRows(data.todayRoutines)
         }
 
-        // ── Exam Performance ──────────────────────────────────────────────────
         data.weeklyExamSummary?.let { exam ->
             binding.tvExamCount.text = exam.examCount.toString()
             binding.tvAvgPercent.text = exam.averagePercent.toPercent()
@@ -223,14 +204,12 @@ class DashboardFragment : Fragment() {
             } ?: binding.tvTrendDelta.gone()
         }
 
-        // ── Study Materials ───────────────────────────────────────────────────
         data.notesSummary?.let { notes ->
             binding.tvNoteCount.text = "${notes.noteCount} materials"
             binding.tvLatestNote.text = notes.latestNoteTitle ?: "No materials yet"
             binding.tvNoteTeacher.text = notes.latestNoteTeacherName?.let { "by $it" } ?: ""
         }
 
-        // ── Pending Notice ────────────────────────────────────────────────────
         data.pendingNotice?.let { notice ->
             binding.cardNotice.visible()
             binding.tvNoticeTitle.text = notice.title
@@ -241,18 +220,24 @@ class DashboardFragment : Fragment() {
         } ?: binding.cardNotice.gone()
     }
 
-    /**
-     * Shows the due alert dialog.
-     * On OK: saves [alertFingerprint] to SharedPreferences so the SAME alert won't
-     * reappear. When management sends a new alert (different month count or message),
-     * the fingerprint won't match and the dialog will show again automatically.
-     */
-    private fun showDueAlertDialog(
-        dueMonthCount: Int,
-        totalDue: Double,
-        serverMessage: String?,
-        alertFingerprint: String
-    ) {
+    // ── Bengali number helpers ────────────────────────────────────────────────
+
+    private fun toBengaliDigits(number: Long): String {
+        val bengaliDigits = charArrayOf('০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯')
+        return number.toString().map { ch ->
+            if (ch.isDigit()) bengaliDigits[ch.digitToInt()] else ch
+        }.joinToString("")
+    }
+
+    private fun toBengaliAmount(amount: Double): String {
+        // Format as whole number (no decimals) with Bengali digits
+        val rounded = Math.round(amount)
+        return toBengaliDigits(rounded)
+    }
+
+    // ── Due Alert Dialog ──────────────────────────────────────────────────────
+
+    private fun showDueAlertDialog(dueMonthCount: Int, totalDue: Double) {
         val ctx = requireContext()
         val dialog = Dialog(ctx)
         dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
@@ -269,38 +254,21 @@ class DashboardFragment : Fragment() {
             )
         }
 
-        // Build Bengali body text
-        val monthCountBn = toBengaliDigits(dueMonthCount.toString())
-        val amountBn     = toBengaliDigits(totalDue.toInt().toString())
-        val bodyText = serverMessage
-            ?: "প্রিয় শিক্ষার্থী, আপনার ${monthCountBn}মাসের বকেয়া জমা হয়েছে ${amountBn} টাকা। অনুগ্রহ করে বকেয়াটি আগামী ২ কর্ম দিবসের মধ্যে পরিশোধ করুন।"
+        val bengaliMonths = toBengaliDigits(dueMonthCount.toLong())
+        val bengaliAmount = toBengaliAmount(totalDue)
 
-        // Amount display in Bengali digits with ৳ symbol
-        val amountDisplay = "${amountBn} ৳"
+        val bodyText = "প্রিয় শিক্ষার্থী, আপনার $bengaliMonths মাসের বকেয়া জমা হয়েছে $bengaliAmount টাকা। " +
+                       "অনুগ্রহ করে বকেয়াটি আগামী ২ কর্ম দিবসের মধ্যে পরিশোধ করুন।"
 
         dialogView.findViewById<TextView>(R.id.tvDialogBody).text   = bodyText
-        dialogView.findViewById<TextView>(R.id.tvDialogAmount).text = amountDisplay
+        dialogView.findViewById<TextView>(R.id.tvDialogAmount).text = totalDue.toCurrency()
 
         dialogView.findViewById<android.widget.Button>(R.id.btnDialogOk).setOnClickListener {
-            // Save fingerprint locally so this exact alert won't reappear
-            // (a new alert from management will have a different fingerprint)
-            ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                .edit()
-                .putString(PREFS_KEY_DISMISSED_MSG, alertFingerprint)
-                .apply()
+            viewModel.dismissDueAlert()
             dialog.dismiss()
         }
 
         dialog.show()
-    }
-
-    /** Converts ASCII digit characters to Bengali digit characters.
-     *  e.g. "3" → "৩", "6000" → "৬০০০" */
-    private fun toBengaliDigits(input: String): String {
-        val bengaliDigits = charArrayOf('০','১','২','৩','৪','৫','৬','৭','৮','৯')
-        return input.map { ch ->
-            if (ch.isDigit()) bengaliDigits[ch - '0'] else ch
-        }.joinToString("")
     }
 
     private fun buildRoutineRows(routines: List<Routine>) {
