@@ -53,14 +53,12 @@ class DashboardViewModel @Inject constructor(
             if (result is Resource.Success) {
                 val data = result.data
 
-                // Unread notice badge
                 val notice = data.pendingNotice
                 _unreadNoticeCount.value = if (notice != null && !notice.isAcknowledged) 1 else 0
 
-                // Due alert — always show whenever server sends one
                 val due     = data.dueSummary
                 val monthly = data.student?.monthlyFee ?: 0.0
-                if (due != null && due.dueMonthCount > 0) {
+                if (due != null && due.showDueAlert && due.dueMonthCount > 0) {
                     val totalDue = due.dueMonthCount * monthly
                     if (totalDue > 0) {
                         _showDueAlert.emit(
