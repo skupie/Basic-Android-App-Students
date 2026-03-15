@@ -28,14 +28,12 @@ class LoginActivity : AppCompatActivity() {
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Already logged in?
         lifecycleScope.launch {
             viewModel.isLoggedIn.collect { isLoggedIn ->
                 if (isLoggedIn) navigateToMain()
             }
         }
 
-        // ── Login method tabs ─────────────────────────────────────────────────
         selectLoginTab(email = true)
 
         binding.tabEmail.setOnClickListener {
@@ -51,7 +49,7 @@ class LoginActivity : AppCompatActivity() {
     private fun selectLoginTab(email: Boolean) {
         isEmailMode = email
         val activeDrawable = ContextCompat.getDrawable(this, R.drawable.bg_tab_selected)
-        val activeTxt  = ContextCompat.getColor(this, R.color.text_primary)
+        val activeTxt   = ContextCompat.getColor(this, R.color.text_primary)
         val inactiveTxt = ContextCompat.getColor(this, R.color.text_hint)
 
         if (email) {
@@ -62,9 +60,8 @@ class LoginActivity : AppCompatActivity() {
             binding.tilEmail.isVisible = true
             binding.tilMobile.isVisible = false
             binding.labelIdentifier.text = "EMAIL ADDRESS"
-            binding.tilEmail.hint = null
-            binding.etEmail.inputType = android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
             binding.etEmail.hint = "student@school.com"
+            binding.etEmail.inputType = android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
         } else {
             binding.tabMobile.background = activeDrawable
             binding.tabMobile.setTextColor(activeTxt)
@@ -84,7 +81,6 @@ class LoginActivity : AppCompatActivity() {
         }
         val password = binding.etPassword.text.toString().trim()
 
-        // Validate
         if (identifier.isEmpty()) {
             if (isEmailMode) binding.tilEmail.error = "Email is required"
             else binding.tilMobile.error = "Mobile number is required"
@@ -107,8 +103,8 @@ class LoginActivity : AppCompatActivity() {
         binding.tilMobile.error = null
         binding.tilPassword.error = null
 
-        // Pass identifier directly — backend accepts both email and mobile
-        viewModel.login(identifier, password)
+        // Pass isMobile flag so the correct API field is used
+        viewModel.login(identifier, password, isMobile = !isEmailMode)
     }
 
     private fun observeLogin() {
