@@ -22,14 +22,24 @@
             android:paddingTop="56dp"
             android:paddingBottom="28dp">
 
-            <!-- Institute Logo -->
-            <ImageView
-                android:layout_width="120dp"
-                android:layout_height="120dp"
+            <!-- Institute Logo — white rounded card so black logo is visible -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="130dp"
+                android:layout_height="130dp"
                 android:layout_marginBottom="18dp"
-                android:src="@drawable/ic_logo"
-                android:scaleType="fitCenter"
-                android:contentDescription="Basic Academy Logo"/>
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_logo"
+                    android:scaleType="fitCenter"
+                    android:padding="10dp"
+                    android:contentDescription="Basic Academy Logo"/>
+
+            </androidx.cardview.widget.CardView>
 
             <!-- Welcome text -->
             <TextView
