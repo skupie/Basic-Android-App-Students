@@ -34,4 +34,14 @@ class LoginViewModel @Inject constructor(
             _loginState.value = authRepository.login(identifier, password, isMobile)
         }
     }
+
+    fun updateFcmToken(token: String) {
+        viewModelScope.launch {
+            try {
+                authRepository.updateFcmToken(token)
+            } catch (e: Exception) {
+                // Silently fail — not critical for login flow
+            }
+        }
+    }
 }
