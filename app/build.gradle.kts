@@ -35,7 +35,6 @@ android {
         }
         debug {
             isDebuggable = true
-            applicationIdSuffix = ".debug"
             buildConfigField("String", "BASE_URL", "\"https://basic.bd-d.online/api/\"")
         }
     }
