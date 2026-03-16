@@ -7,9 +7,9 @@ import com.basic.studentportal.utils.Resource
 import com.basic.studentportal.utils.parseError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.net.UnknownHostException
-import java.net.SocketTimeoutException
 import java.net.ConnectException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -45,24 +45,28 @@ class AuthRepository @Inject constructor(
     private val api: ApiService,
     private val tokenDataStore: TokenDataStore
 ) {
-    suspend fun login(identifier: String, password: String, isMobile: Boolean): Resource<LoginResponse> {
-    val request = if (isMobile) {
-        LoginRequest(mobile = identifier, password = password)
-    } else {
-        LoginRequest(email = identifier, password = password)
+    suspend fun login(
+        identifier: String,
+        password: String,
+        isMobile: Boolean
+    ): Resource<LoginResponse> {
+        val request = if (isMobile) {
+            LoginRequest(mobile = identifier, password = password)
+        } else {
+            LoginRequest(email = identifier, password = password)
+        }
+        val result = safeApiCall { api.login(request) }
+        if (result is Resource.Success) {
+            tokenDataStore.saveAuthData(
+                token    = result.data.token,
+                name     = result.data.user.name,
+                email    = result.data.user.email,
+                role     = result.data.user.role,
+                photoUrl = result.data.user.profilePhotoUrl
+            )
+        }
+        return result
     }
-    val result = safeApiCall { api.login(request) }
-    if (result is Resource.Success) {
-        tokenDataStore.saveAuthData(
-            token = result.data.token,
-            name = result.data.user.name,
-            email = result.data.user.email,
-            role = result.data.user.role,
-            photoUrl = result.data.user.profilePhotoUrl
-        )
-    }
-    return result
-}
 
     suspend fun logout(): Resource<MessageResponse> {
         val result = safeApiCall { api.logout() }
@@ -71,6 +75,9 @@ class AuthRepository @Inject constructor(
     }
 
     suspend fun getMe(): Resource<AuthUser> = safeApiCall { api.getMe() }
+
+    suspend fun updateFcmToken(token: String): Resource<MessageResponse> =
+        safeApiCall { api.updateFcmToken(FcmTokenRequest(fcmToken = token)) }
 
     suspend fun updateEmail(newEmail: String, currentPassword: String): Resource<String> {
         val result = safeApiCall {
@@ -120,7 +127,11 @@ class DashboardRepository @Inject constructor(private val api: ApiService) {
 
 @Singleton
 class AttendanceRepository @Inject constructor(private val api: ApiService) {
-    suspend fun getAttendance(month: String? = null, status: String? = null, page: Int = 1): Resource<ListResponse<AttendanceRecord>> =
+    suspend fun getAttendance(
+        month: String? = null,
+        status: String? = null,
+        page: Int = 1
+    ): Resource<ListResponse<AttendanceRecord>> =
         safeApiCall { api.getAttendance(month, status, page) }
 
     suspend fun getSummary(month: String? = null): Resource<AttendanceSummary> =
@@ -142,19 +153,31 @@ class FeeRepository @Inject constructor(private val api: ApiService) {
 
 @Singleton
 class ExamRepository @Inject constructor(private val api: ApiService) {
-    suspend fun getWeeklyMarks(weekStart: String? = null, page: Int = 1): Resource<WeeklyMarksResponse> =
+    suspend fun getWeeklyMarks(
+        weekStart: String? = null,
+        page: Int = 1
+    ): Resource<WeeklyMarksResponse> =
         safeApiCall { api.getWeeklyMarks(weekStart, page = page) }
 
-    suspend fun getAssignments(weekStart: String? = null, upcomingOnly: Boolean = false): Resource<ListResponse<WeeklyExamAssignment>> =
+    suspend fun getAssignments(
+        weekStart: String? = null,
+        upcomingOnly: Boolean = false
+    ): Resource<ListResponse<WeeklyExamAssignment>> =
         safeApiCall { api.getWeeklyAssignments(weekStart, upcomingOnly) }
 
-    suspend fun getSyllabi(weekStart: String? = null, subject: String? = null): Resource<ListResponse<WeeklyExamSyllabus>> =
+    suspend fun getSyllabi(
+        weekStart: String? = null,
+        subject: String? = null
+    ): Resource<ListResponse<WeeklyExamSyllabus>> =
         safeApiCall { api.getWeeklySyllabi(weekStart, subject) }
 
     suspend fun getModelTests(): Resource<ListResponse<ModelTest>> =
         safeApiCall { api.getModelTests() }
 
-    suspend fun getModelTestResults(modelTestId: Int? = null, page: Int = 1): Resource<ListResponse<ModelTestResult>> =
+    suspend fun getModelTestResults(
+        modelTestId: Int? = null,
+        page: Int = 1
+    ): Resource<ListResponse<ModelTestResult>> =
         safeApiCall { api.getModelTestResults(modelTestId, page) }
 }
 
@@ -184,6 +207,9 @@ class NoticeRepository @Inject constructor(private val api: ApiService) {
 
 @Singleton
 class StudyMaterialRepository @Inject constructor(private val api: ApiService) {
-    suspend fun getMaterials(subject: String? = null, page: Int = 1): Resource<StudyMaterialsResponse> =
+    suspend fun getMaterials(
+        subject: String? = null,
+        page: Int = 1
+    ): Resource<StudyMaterialsResponse> =
         safeApiCall { api.getStudyMaterials(subject, page) }
 }
