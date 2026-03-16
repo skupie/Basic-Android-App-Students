@@ -13,7 +13,7 @@ class FcmTokenRepository @Inject constructor(
         try {
             api.updateFcmToken(FcmTokenRequest(fcmToken = token))
         } catch (e: Exception) {
-            // Silently fail — will retry on next app launch
+            // Silently fail — will retry on next login
         }
     }
 }
