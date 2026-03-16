@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Student Portal</string>
+    <string name="app_name">Basic Academy</string>
     <string name="sign_in">Sign In</string>
     <string name="email_hint">student@school.com</string>
     <string name="password_hint">Password</string>
