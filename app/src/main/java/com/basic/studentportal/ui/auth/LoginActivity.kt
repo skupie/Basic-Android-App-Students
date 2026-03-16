@@ -12,6 +12,7 @@ import com.basic.studentportal.databinding.ActivityLoginBinding
 import com.basic.studentportal.ui.main.MainActivity
 import com.basic.studentportal.utils.Resource
 import com.basic.studentportal.utils.showToast
+import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -44,13 +45,22 @@ class LoginActivity : AppCompatActivity() {
                     }
                     is Resource.Success -> {
                         binding.progressBar.isVisible = false
-                        binding.btnLogin.text = "Sign In  →"
+                        binding.btnLogin.text = "SIGN IN  →"
                         binding.btnLogin.isEnabled = true
+
+                        // Register FCM token with server after successful login
+                        FirebaseMessaging.getInstance().token
+                            .addOnSuccessListener { fcmToken ->
+                                lifecycleScope.launch {
+                                    viewModel.updateFcmToken(fcmToken)
+                                }
+                            }
+
                         navigateToMain()
                     }
                     is Resource.Error -> {
                         binding.progressBar.isVisible = false
-                        binding.btnLogin.text = "Sign In  →"
+                        binding.btnLogin.text = "SIGN IN  →"
                         binding.btnLogin.isEnabled = true
                         if (state.message.isNotBlank()) showToast(state.message)
                     }
@@ -76,8 +86,8 @@ class LoginActivity : AppCompatActivity() {
         val activeTxt   = ContextCompat.getColor(this, R.color.text_primary)
         val inactiveTxt = ContextCompat.getColor(this, R.color.text_hint)
 
-        binding.tilEmail.error = null
-        binding.tilMobile.error = null
+        binding.tilEmail.error   = null
+        binding.tilMobile.error  = null
         binding.tilPassword.error = null
 
         if (email) {
@@ -85,7 +95,7 @@ class LoginActivity : AppCompatActivity() {
             binding.tabEmail.setTextColor(activeTxt)
             binding.tabMobile.background = null
             binding.tabMobile.setTextColor(inactiveTxt)
-            binding.tilEmail.isVisible = true
+            binding.tilEmail.isVisible  = true
             binding.tilMobile.isVisible = false
             binding.labelIdentifier.text = "EMAIL ADDRESS"
             binding.etEmail.hint = "your@email.com"
@@ -95,7 +105,7 @@ class LoginActivity : AppCompatActivity() {
             binding.tabMobile.setTextColor(activeTxt)
             binding.tabEmail.background = null
             binding.tabEmail.setTextColor(inactiveTxt)
-            binding.tilEmail.isVisible = false
+            binding.tilEmail.isVisible  = false
             binding.tilMobile.isVisible = true
             binding.labelIdentifier.text = "MOBILE NUMBER"
         }
@@ -109,8 +119,8 @@ class LoginActivity : AppCompatActivity() {
         }
         val password = binding.etPassword.text.toString().trim()
 
-        binding.tilEmail.error = null
-        binding.tilMobile.error = null
+        binding.tilEmail.error   = null
+        binding.tilMobile.error  = null
         binding.tilPassword.error = null
 
         if (identifier.isEmpty()) {
