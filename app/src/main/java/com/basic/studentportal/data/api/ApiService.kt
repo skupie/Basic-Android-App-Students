@@ -6,10 +6,6 @@ import retrofit2.http.*
 
 interface ApiService {
 
-    //----------+FCM Tocken For Push-------------------
-    @POST("auth/fcm-token")
-    suspend fun updateFcmToken(@Body request: FcmTokenRequest): Response<MessageResponse>
-
     // ─── Auth ────────────────────────────────────────────────────────────────
 
     @POST("auth/login")
@@ -26,6 +22,9 @@ interface ApiService {
 
     @PUT("auth/update-password")
     suspend fun updatePassword(@Body request: UpdatePasswordRequest): Response<MessageResponse>
+
+    @POST("auth/fcm-token")
+    suspend fun updateFcmToken(@Body request: FcmTokenRequest): Response<MessageResponse>
 
     // ─── Student Profile ─────────────────────────────────────────────────────
 
