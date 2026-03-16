@@ -26,30 +26,30 @@ class FcmService : FirebaseMessagingService() {
     @Inject
     lateinit var tokenDataStore: TokenDataStore
 
+    @Inject
+    lateinit var fcmTokenRepository: FcmTokenRepository
+
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        // Save new token locally and send to server if logged in
         CoroutineScope(Dispatchers.IO).launch {
             tokenDataStore.saveFcmToken(token)
             val authToken = tokenDataStore.getAuthToken().firstOrNull()
             if (!authToken.isNullOrEmpty()) {
-                sendTokenToServer(token, authToken)
+                fcmTokenRepository.sendTokenToServer(token)
             }
         }
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
-
         val title = message.notification?.title ?: message.data["title"] ?: "Basic Academy"
-        val body = message.notification?.body ?: message.data["body"] ?: ""
-        val type = message.data["type"] ?: ""
-
+        val body  = message.notification?.body  ?: message.data["body"]  ?: ""
+        val type  = message.data["type"] ?: "general"
         showNotification(title, body, type)
     }
 
     private fun showNotification(title: String, body: String, type: String) {
-        val channelId = getChannelId(type)
+        val channelId   = getChannelId(type)
         val channelName = getChannelName(type)
 
         val intent = Intent(this, MainActivity::class.java).apply {
@@ -58,13 +58,15 @@ class FcmService : FirebaseMessagingService() {
         }
 
         val pendingIntent = PendingIntent.getActivity(
-            this, 0, intent,
+            this,
+            System.currentTimeMillis().toInt(),
+            intent,
             PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
         )
 
         val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 
-        val notificationBuilder = NotificationCompat.Builder(this, channelId)
+        val notification = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.ic_logo)
             .setContentTitle(title)
             .setContentText(body)
@@ -73,9 +75,9 @@ class FcmService : FirebaseMessagingService() {
             .setSound(soundUri)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
+            .build()
 
-        val notificationManager =
-            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -86,13 +88,13 @@ class FcmService : FirebaseMessagingService() {
                 enableLights(true)
                 enableVibration(true)
             }
-            notificationManager.createNotificationChannel(channel)
+            manager.createNotificationChannel(channel)
         }
 
-        notificationManager.notify(System.currentTimeMillis().toInt(), notificationBuilder.build())
+        manager.notify(System.currentTimeMillis().toInt(), notification)
     }
 
-    private fun getChannelId(type: String): String = when (type) {
+    private fun getChannelId(type: String) = when (type) {
         "payment"  -> "channel_payment"
         "notice"   -> "channel_notice"
         "due"      -> "channel_due"
@@ -102,7 +104,7 @@ class FcmService : FirebaseMessagingService() {
         else       -> "channel_general"
     }
 
-    private fun getChannelName(type: String): String = when (type) {
+    private fun getChannelName(type: String) = when (type) {
         "payment"  -> "Payment Notifications"
         "notice"   -> "Notice Notifications"
         "due"      -> "Due Alert Notifications"
@@ -110,9 +112,5 @@ class FcmService : FirebaseMessagingService() {
         "material" -> "Study Material Notifications"
         "invoice"  -> "Invoice Notifications"
         else       -> "General Notifications"
-    }
-
-    private fun sendTokenToServer(fcmToken: String, authToken: String) {
-        // This is handled by the repository on login/token refresh
     }
 }
