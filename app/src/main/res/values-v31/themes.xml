@@ -2,7 +2,8 @@
 <resources>
     <style name="Theme.StudentPortal.Login" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/bg_primary</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <!-- Changed from ic_launcher_foreground to ic_splash_icon which includes the glow -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_icon</item>
         <item name="windowSplashScreenIconBackgroundColor">@color/bg_primary</item>
         <item name="postSplashScreenTheme">@style/Theme.StudentPortal</item>
     </style>
