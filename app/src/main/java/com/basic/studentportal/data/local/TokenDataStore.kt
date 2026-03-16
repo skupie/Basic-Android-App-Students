@@ -21,22 +21,22 @@ class TokenDataStore @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     companion object {
-        private val TOKEN_KEY         = stringPreferencesKey("auth_token")
-        private val USER_NAME_KEY     = stringPreferencesKey("user_name")
-        private val USER_EMAIL_KEY    = stringPreferencesKey("user_email")
-        private val USER_ROLE_KEY     = stringPreferencesKey("user_role")
-        private val PROFILE_PHOTO_KEY = stringPreferencesKey("profile_photo_url")
-        private val FCM_TOKEN_KEY     = stringPreferencesKey("fcm_token")
+        private val TOKEN_KEY                 = stringPreferencesKey("auth_token")
+        private val USER_NAME_KEY             = stringPreferencesKey("user_name")
+        private val USER_EMAIL_KEY            = stringPreferencesKey("user_email")
+        private val USER_ROLE_KEY             = stringPreferencesKey("user_role")
+        private val PROFILE_PHOTO_KEY         = stringPreferencesKey("profile_photo_url")
+        private val FCM_TOKEN_KEY             = stringPreferencesKey("fcm_token")
         private val DUE_ALERT_DISMISSED_COUNT = intPreferencesKey("due_alert_dismissed_count")
     }
 
-    fun getToken(): Flow<String?>          = context.dataStore.data.map { it[TOKEN_KEY] }
-    fun getUserName(): Flow<String?>       = context.dataStore.data.map { it[USER_NAME_KEY] }
-    fun getUserEmail(): Flow<String?>      = context.dataStore.data.map { it[USER_EMAIL_KEY] }
+    fun getToken(): Flow<String?>           = context.dataStore.data.map { it[TOKEN_KEY] }
+    fun getUserName(): Flow<String?>        = context.dataStore.data.map { it[USER_NAME_KEY] }
+    fun getUserEmail(): Flow<String?>       = context.dataStore.data.map { it[USER_EMAIL_KEY] }
     fun getProfilePhotoUrl(): Flow<String?> = context.dataStore.data.map { it[PROFILE_PHOTO_KEY] }
-    fun getFcmToken(): Flow<String?>       = context.dataStore.data.map { it[FCM_TOKEN_KEY] }
+    fun getFcmToken(): Flow<String?>        = context.dataStore.data.map { it[FCM_TOKEN_KEY] }
 
-    // Alias used by FcmService
+    // Alias used by FcmService to check if user is logged in
     fun getAuthToken(): Flow<String?> = getToken()
 
     suspend fun saveAuthData(
