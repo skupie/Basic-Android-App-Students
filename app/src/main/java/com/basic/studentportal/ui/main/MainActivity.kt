@@ -7,6 +7,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.basic.studentportal.R
+import com.basic.studentportal.data.api.AuthEventBus
 import com.basic.studentportal.data.local.TokenDataStore
 import com.basic.studentportal.databinding.ActivityMainBinding
 import com.basic.studentportal.ui.auth.LoginActivity
@@ -22,45 +23,49 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var tokenDataStore: TokenDataStore
 
+    @Inject
+    lateinit var authEventBus: AuthEventBus
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Toolbar is hidden via layout — fragments have their own headers
-
         val navHostFragment = supportFragmentManager
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         val navController = navHostFragment.navController
 
-        // Setup bottom nav with nav controller (standard tab behaviour)
         binding.bottomNavigation.setupWithNavController(navController)
 
-        // Fix #2: Home tab always returns to dashboard root — never remembers a sub-page
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             if (item.itemId == R.id.dashboardFragment) {
-                // Pop everything off the back stack back to dashboard
                 navController.popBackStack(R.id.dashboardFragment, false)
                 true
             } else {
-                // For all other tabs, navigate normally (replace current top-level)
                 navController.navigate(item.itemId)
                 true
             }
         }
 
-        // Re-selecting a tab navigates to it even if already selected
         binding.bottomNavigation.setOnItemReselectedListener { item ->
             if (item.itemId == R.id.dashboardFragment) {
                 navController.popBackStack(R.id.dashboardFragment, false)
             }
         }
 
-        // Handle notification tap deep-link on cold start
+        // Listen for 401 Unauthenticated events from AuthInterceptor.
+        // When the same account logs in on another device, the server revokes
+        // the old token. Any subsequent API call returns 401. We catch it here
+        // and redirect to LoginActivity immediately instead of showing an error.
+        lifecycleScope.launch {
+            authEventBus.unauthorizedEvent.collect {
+                forceLogout()
+            }
+        }
+
         handleNotificationIntent()
     }
 
-    // Called when activity is already running and a notification is tapped
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
@@ -77,7 +82,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Reads notification_type extra from FCM and navigates to the correct screen
+    private fun forceLogout() {
+        // Token already cleared by AuthInterceptor — just navigate to login
+        startActivity(Intent(this@MainActivity, LoginActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        })
+        finish()
+    }
+
     private fun handleNotificationIntent() {
         val type = intent?.getStringExtra("notification_type") ?: return
 
@@ -94,8 +106,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         destinationId?.let { navController.navigate(it) }
-
-        // Clear so repeated onNewIntent calls don't re-navigate
         intent?.removeExtra("notification_type")
     }
 }
