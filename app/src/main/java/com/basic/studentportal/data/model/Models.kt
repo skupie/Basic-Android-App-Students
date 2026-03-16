@@ -25,6 +25,11 @@ data class AuthUser(
     @SerializedName("profile_photo_url") val profilePhotoUrl: String?
 )
 
+data class FcmTokenRequest(
+    @SerializedName("fcm_token") val fcmToken: String,
+    @SerializedName("device_name") val deviceName: String = "Android App"
+)
+
 // ─── Student Profile ─────────────────────────────────────────────────────────
 
 data class StudentProfile(
@@ -279,7 +284,6 @@ data class ApiError(
     @SerializedName("errors") val errors: Map<String, List<String>>?
 )
 
-// Generic list wrappers
 data class ListResponse<T>(
     @SerializedName("data") val data: List<T>,
     @SerializedName("meta") val meta: PaginationMeta?
