@@ -8,7 +8,8 @@ import okhttp3.Response
 import javax.inject.Inject
 
 class AuthInterceptor @Inject constructor(
-    private val tokenDataStore: TokenDataStore
+    private val tokenDataStore: TokenDataStore,
+    private val authEventBus: AuthEventBus
 ) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -20,6 +21,17 @@ class AuthInterceptor @Inject constructor(
                 addHeader("Authorization", "Bearer $token")
             }
         }.build()
-        return chain.proceed(request)
+
+        val response = chain.proceed(request)
+
+        // If the server returns 401, the token was revoked (e.g. user logged in
+        // on another device). Clear local credentials and broadcast the event
+        // so MainActivity can redirect to LoginActivity immediately.
+        if (response.code == 401) {
+            runBlocking { tokenDataStore.clearAll() }
+            authEventBus.sendUnauthorizedEvent()
+        }
+
+        return response
     }
 }
