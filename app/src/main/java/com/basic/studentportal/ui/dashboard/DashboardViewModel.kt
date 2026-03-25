@@ -42,7 +42,9 @@ class DashboardViewModel @Inject constructor(
         val message: String?
     )
 
-    init { loadDashboard() }
+    init {
+        loadDashboard()
+    }
 
     fun loadDashboard() {
         viewModelScope.launch {
@@ -57,16 +59,25 @@ class DashboardViewModel @Inject constructor(
                 val notice = data.pendingNotice
                 _unreadNoticeCount.value = if (notice != null && !notice.isAcknowledged) 1 else 0
 
-                // Due alert — server's showDueAlert flag is the single source of truth.
-                // Use dueAmount directly from server (not calculated) for accuracy.
+                // Due alert
+                // Always calculate total due as: monthlyFee * dueMonthCount
                 val due = data.dueSummary
-                if (due != null && due.showDueAlert && due.dueMonthCount > 0 && due.dueAmount > 0) {
+                val monthlyFee = data.student?.monthlyFee ?: 0.0
+                val calculatedTotalDue =
+                    if (due != null) due.dueMonthCount * monthlyFee else 0.0
+
+                if (due != null && due.showDueAlert && due.dueMonthCount > 0 && calculatedTotalDue > 0) {
                     _showDueAlert.emit(
-                        DueAlertData(due.dueMonthCount, due.dueAmount, due.dueAlertMessage)
+                        DueAlertData(
+                            dueMonthCount = due.dueMonthCount,
+                            totalDue = calculatedTotalDue,
+                            message = due.dueAlertMessage
+                        )
                     )
                 }
             }
         }
+
         viewModelScope.launch {
             _attendanceSummary.value = Resource.Loading
             _attendanceSummary.value = attendanceRepository.getSummary(month = null)
