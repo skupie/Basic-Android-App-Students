@@ -10,6 +10,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.basic.studentportal.R
+import com.basic.studentportal.data.model.FeeInvoice
 import com.basic.studentportal.databinding.FragmentFeesBinding
 import com.basic.studentportal.utils.Resource
 import com.basic.studentportal.utils.gone
@@ -45,11 +46,9 @@ class FeesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // ── RecyclerView — was missing LayoutManager ──────────────────────────
         binding.recyclerFees.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerFees.adapter = invoiceAdapter
 
-        // ── Pill tab switching ────────────────────────────────────────────────
         selectTab(invoices = true)
 
         binding.tabInvoices.setOnClickListener {
@@ -68,48 +67,59 @@ class FeesFragment : Fragment() {
             }
         }
 
-        // ── Swipe refresh ─────────────────────────────────────────────────────
         binding.swipeRefresh.setOnRefreshListener { viewModel.refresh() }
 
-        // ── Invoices ──────────────────────────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.invoices.collect { state ->
                 when (state) {
-                    is Resource.Loading -> binding.swipeRefresh.isRefreshing = true
+                    is Resource.Loading -> {
+                        binding.swipeRefresh.isRefreshing = true
+                    }
+
                     is Resource.Success -> {
                         binding.swipeRefresh.isRefreshing = false
-                        invoiceAdapter.submitList(state.data.data)
 
+                        val invoices = state.data.data
                         val ds = state.data.dueSummary
-                        if (ds != null && ds.dueMonthsCount > 0) {
+
+                        // Always derive one full monthly fee and use it everywhere
+                        val monthlyFee = resolveMonthlyFee(invoices)
+
+                        // Important: set canonical monthly fee before submitList
+                        invoiceAdapter.setMonthlyFee(monthlyFee)
+                        invoiceAdapter.submitList(invoices)
+
+                        if (ds != null && ds.dueMonthsCount > 0 && monthlyFee > 0) {
                             binding.cardDueSummary.visible()
 
-                            val monthlyFee = state.data.data
-                                .maxOfOrNull { it.amountDue } ?: 0.0
                             val totalOutstanding = ds.dueMonthsCount * monthlyFee
 
-                            // Monthly fee label above the big amount
                             binding.tvMonthlyFee.text =
                                 "Monthly Fee  ${monthlyFee.toCurrency()}"
 
                             binding.tvTotalDue.text = totalOutstanding.toCurrency()
 
-                            binding.tvOverdueBadge.text = "${ds.dueMonthsCount} Month${if (ds.dueMonthsCount != 1) "s" else ""} Overdue"
+                            binding.tvOverdueBadge.text =
+                                "${ds.dueMonthsCount} Month${if (ds.dueMonthsCount != 1) "s" else ""} Overdue"
 
-                            val unpaidLabels = state.data.data
-                                .filter { it.status != "paid" }
+                            val unpaidLabels = invoices
+                                .filter { it.status.lowercase() != "paid" }
                                 .map { inv ->
-                                    inv.billingMonthLabel
-                                        ?: formatBillingMonth(inv.billingMonth)
+                                    inv.billingMonthLabel ?: formatBillingMonth(inv.billingMonth)
                                 }
                                 .takeLast(2)
-                            binding.tvDueMonths.text = if (unpaidLabels.isNotEmpty())
-                                "${unpaidLabels.joinToString(" & ")} unpaid"
-                            else "${ds.dueMonthsCount} month(s) pending"
+
+                            binding.tvDueMonths.text =
+                                if (unpaidLabels.isNotEmpty()) {
+                                    "${unpaidLabels.joinToString(" & ")} unpaid"
+                                } else {
+                                    "${ds.dueMonthsCount} month(s) pending"
+                                }
                         } else {
                             binding.cardDueSummary.gone()
                         }
                     }
+
                     is Resource.Error -> {
                         binding.swipeRefresh.isRefreshing = false
                         binding.cardDueSummary.gone()
@@ -118,25 +128,45 @@ class FeesFragment : Fragment() {
             }
         }
 
-        // ── Payments ──────────────────────────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.payments.collect { state ->
-                if (state is Resource.Success) paymentAdapter.submitList(state.data.data)
+                if (state is Resource.Success) {
+                    paymentAdapter.submitList(state.data.data)
+                }
             }
         }
     }
 
+    private fun resolveMonthlyFee(invoices: List<FeeInvoice>): Double {
+        return invoices.maxOfOrNull { invoice ->
+            maxOf(
+                invoice.amountDue,
+                invoice.amountPaid + invoice.outstandingAmount
+            )
+        } ?: 0.0
+    }
+
     private fun selectTab(invoices: Boolean) {
         if (invoices) {
-            binding.tabInvoices.background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_tab_selected)
-            binding.tabInvoices.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary))
+            binding.tabInvoices.background =
+                ContextCompat.getDrawable(requireContext(), R.drawable.bg_tab_selected)
+            binding.tabInvoices.setTextColor(
+                ContextCompat.getColor(requireContext(), R.color.text_primary)
+            )
             binding.tabPayments.background = null
-            binding.tabPayments.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_hint))
+            binding.tabPayments.setTextColor(
+                ContextCompat.getColor(requireContext(), R.color.text_hint)
+            )
         } else {
-            binding.tabPayments.background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_tab_selected)
-            binding.tabPayments.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary))
+            binding.tabPayments.background =
+                ContextCompat.getDrawable(requireContext(), R.drawable.bg_tab_selected)
+            binding.tabPayments.setTextColor(
+                ContextCompat.getColor(requireContext(), R.color.text_primary)
+            )
             binding.tabInvoices.background = null
-            binding.tabInvoices.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_hint))
+            binding.tabInvoices.setTextColor(
+                ContextCompat.getColor(requireContext(), R.color.text_hint)
+            )
         }
     }
 
@@ -144,7 +174,9 @@ class FeesFragment : Fragment() {
         return try {
             val ym = YearMonth.parse(raw, DateTimeFormatter.ofPattern("yyyy-MM"))
             "${ym.month.getDisplayName(TextStyle.FULL, Locale.ENGLISH)} ${ym.year}"
-        } catch (e: Exception) { raw }
+        } catch (e: Exception) {
+            raw
+        }
     }
 
     override fun onDestroyView() {
