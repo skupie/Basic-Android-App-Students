@@ -30,10 +30,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 import javax.inject.Inject
+
+private fun getEffectiveRoutineDate(): LocalDate {
+    val now = LocalTime.now()
+    val today = LocalDate.now()
+    return if (!now.isBefore(LocalTime.of(18, 0))) today.plusDays(1) else today
+}
 
 // ─── ViewModel ────────────────────────────────────────────────────────────────
 
@@ -44,7 +51,7 @@ class RoutinesViewModel @Inject constructor(private val repository: RoutineRepos
     val routines: StateFlow<Resource<RoutinesResponse>> = _routines
 
     // The date string last requested — kept so swipe-to-refresh reloads the same date
-    var lastRequestedDate: String = LocalDate.now()
+    var lastRequestedDate: String = getEffectiveRoutineDate()
         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
         private set
 
@@ -130,7 +137,7 @@ class RoutinesFragment : Fragment() {
      * right away, without waiting for the API response to come back.
      * We never read the date back from the API response (server echoes are unreliable).
      */
-    private var displayedDate: LocalDate = LocalDate.now()
+    private var displayedDate: LocalDate = getEffectiveRoutineDate()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -160,10 +167,10 @@ class RoutinesFragment : Fragment() {
             viewModel.loadRoutines(displayedDate.format(dateFmt))
         }
 
-        // ── Next: step 1 calendar day forward, but never past today ──────────
+        // ── Next: step 1 calendar day forward, but never past effective date ─
         binding.btnNextDay.setOnClickListener {
             val next = displayedDate.plusDays(1)
-            if (!next.isAfter(LocalDate.now())) {
+            if (!next.isAfter(getEffectiveRoutineDate())) {
                 displayedDate = next
                 updateDateHeader()                          // immediate header update
                 viewModel.loadRoutines(displayedDate.format(dateFmt))
@@ -210,10 +217,10 @@ class RoutinesFragment : Fragment() {
     private fun updateDateHeader() {
         binding.tvCurrentDate.text = formatDate(displayedDate)
 
-        // Next arrow dimmed/disabled when already at today
-        val atToday = !displayedDate.isBefore(LocalDate.now())
-        binding.btnNextDay.alpha     = if (atToday) 0.3f else 1f
-        binding.btnNextDay.isEnabled = !atToday
+        // Next arrow dimmed/disabled when already at latest available routine day
+        val atLatestAvailableDay = !displayedDate.isBefore(getEffectiveRoutineDate())
+        binding.btnNextDay.alpha     = if (atLatestAvailableDay) 0.3f else 1f
+        binding.btnNextDay.isEnabled = !atLatestAvailableDay
 
         // Prev arrow always available
         binding.btnPrevDay.alpha     = 1f
