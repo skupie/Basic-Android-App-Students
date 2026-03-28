@@ -18,6 +18,7 @@ import androidx.navigation.fragment.findNavController
 import com.basic.studentportal.R
 import com.basic.studentportal.data.model.DashboardResponse
 import com.basic.studentportal.data.model.Routine
+import com.basic.studentportal.data.model.RoutinesResponse
 import com.basic.studentportal.data.model.StudentNotice
 import com.basic.studentportal.databinding.FragmentDashboardBinding
 import com.basic.studentportal.utils.Resource
@@ -28,6 +29,7 @@ import com.basic.studentportal.utils.toPercent
 import com.basic.studentportal.utils.visible
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.time.LocalTime
 import java.util.Calendar
 
 @AndroidEntryPoint
@@ -108,6 +110,13 @@ class DashboardFragment : Fragment() {
             }
         }
 
+        // ── Routine preview ───────────────────────────────────────────────────
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.routinePreview.collect { state ->
+                bindRoutinePreview(state, viewModel.routinePreviewDate.value)
+            }
+        }
+
         // ── Unread notice badge ───────────────────────────────────────────────
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.unreadNoticeCount.collect { count ->
@@ -175,18 +184,8 @@ class DashboardFragment : Fragment() {
         binding.cardDueAlert.gone()
 
         // ── Today's Classes ───────────────────────────────────────────────────
-        binding.tvRoutineDate.text = if (!data.routineDate.isNullOrBlank())
-            "TODAY'S CLASSES · ${data.routineDate}"
-        else "TODAY'S CLASSES"
-
-        if (data.todayRoutines.isEmpty()) {
-            binding.tvNoRoutine.visible()
-            binding.containerRoutines.gone()
-        } else {
-            binding.tvNoRoutine.gone()
-            binding.containerRoutines.visible()
-            buildRoutineRows(data.todayRoutines)
-        }
+        // Loaded separately from RoutineRepository so we can show the next day's
+        // routine automatically after 6 PM.
 
         // ── Exam Performance ──────────────────────────────────────────────────
         data.weeklyExamSummary?.let { exam ->
@@ -217,6 +216,42 @@ class DashboardFragment : Fragment() {
         binding.cardNotice.gone()
         data.pendingNotice?.let { notice ->
             if (!notice.isAcknowledged) showNoticeDialog(notice)
+        }
+    }
+
+    private fun bindRoutinePreview(
+        state: Resource<RoutinesResponse>,
+        requestedDate: String
+    ) {
+        binding.tvRoutineDate.text =
+            if (!LocalTime.now().isBefore(LocalTime.of(18, 0))) {
+                "TOMORROW'S CLASSES · $requestedDate"
+            } else {
+                "TODAY'S CLASSES · $requestedDate"
+            }
+
+        when (state) {
+            is Resource.Loading -> {
+                // Keep previous routine preview while reloading
+            }
+
+            is Resource.Success -> {
+                if (state.data.data.isEmpty()) {
+                    binding.tvNoRoutine.text = "No classes scheduled"
+                    binding.tvNoRoutine.visible()
+                    binding.containerRoutines.gone()
+                } else {
+                    binding.tvNoRoutine.gone()
+                    binding.containerRoutines.visible()
+                    buildRoutineRows(state.data.data)
+                }
+            }
+
+            is Resource.Error -> {
+                binding.tvNoRoutine.text = state.message
+                binding.tvNoRoutine.visible()
+                binding.containerRoutines.gone()
+            }
         }
     }
 
